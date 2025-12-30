@@ -215,173 +215,6 @@ def demo_parser_driver(grammar: Grammar, action_table, goto_table):
     return success
 
 
-def demo_semantic_interface():
-    """
-    演示语义动作接口的使用
-    为同学B提供使用示例
-    """
-    print("\n" + "="*70)
-    print(" 语义分析接口使用示例 ".center(70, "="))
-    print("="*70 + "\n")
-    
-    print("""
-【给同学B的接口说明】
-
-1. 创建自定义语义分析器:
-   ────────────────────────────────────────────────────────
-   from parser_driver import SemanticAnalyzer, Symbol
-   from parser_generator import Production
-   
-   class MySemanticAnalyzer(SemanticAnalyzer):
-       def semantic_action(self, production, symbols):
-           # production: 当前归约使用的产生式
-           # symbols: 归约的符号列表(每个符号有name和value属性)
-           
-           # 示例: 处理加法表达式 E -> E + T
-           if str(production) == "E -> E + T":
-               left = symbols[0].value
-               right = symbols[2].value
-               temp = self.new_temp()
-               self.emit(f"{temp} = {left} + {right}")
-               return temp
-           
-           # 默认: 传递第一个符号的值
-           return symbols[0].value if symbols else None
-
-2. 使用语义分析器:
-   ────────────────────────────────────────────────────────
-   analyzer = MySemanticAnalyzer()
-   parser = LRParser(grammar, action_table, goto_table,
-                    semantic_handler=analyzer.semantic_action)
-   parser.parse(tokens)
-   
-   # 获取生成的代码
-   code = analyzer.get_code()
-
-3. SemanticAnalyzer提供的工具函数:
-   ────────────────────────────────────────────────────────
-   - new_temp()              : 生成临时变量 (t1, t2, ...)
-   - emit(code)              : 生成三地址码
-   - add_symbol(name, type)  : 添加符号到符号表
-   - lookup_symbol(name)     : 查询符号表
-   - get_code()              : 获取生成的中间代码
-   - print_symbol_table()    : 打印符号表
-   - print_intermediate_code(): 打印中间代码
-
-4. 产生式匹配技巧:
-   ────────────────────────────────────────────────────────
-   # 方法1: 字符串匹配
-   if str(production) == "E -> E + T":
-       ...
-   
-   # 方法2: 检查产生式ID
-   if production.id == 2:
-       ...
-   
-   # 方法3: 检查结构
-   if production.left == "E" and len(symbols) == 3:
-       if symbols[1].name == '+':
-           ...
-
-5. 符号栈使用示例:
-   ────────────────────────────────────────────────────────
-   # symbols是归约的符号列表,从左到右
-   # 例如归约 E -> E + T 时:
-   #   symbols[0]: E (左操作数)
-   #   symbols[1]: + (操作符)
-   #   symbols[2]: T (右操作数)
-   
-   left_value = symbols[0].value
-   operator = symbols[1].name
-   right_value = symbols[2].value
-
-6. 完整示例流程:
-   ────────────────────────────────────────────────────────
-   见下方的 example_full_workflow() 函数
-""")
-
-
-def example_full_workflow():
-    """
-    完整工作流程示例
-    从文法定义到代码生成的完整流程
-    """
-    print("\n" + "="*70)
-    print(" 完整工作流程示例 ".center(70, "="))
-    print("="*70 + "\n")
-    
-    print("步骤1: 定义文法")
-    print("-" * 70)
-    grammar = Grammar()
-    grammar.add_production("S", ["id", ":=", "E"])
-    grammar.add_production("E", ["E", "+", "T"])
-    grammar.add_production("E", ["T"])
-    grammar.add_production("T", ["id"])
-    grammar.add_production("T", ["num"])
-    
-    for prod in grammar.productions:
-        print(f"  {prod}")
-    
-    print("\n步骤2: 生成LALR(1)分析表")
-    print("-" * 70)
-    generator = ParserGenerator(grammar)
-    action_table, goto_table = generator.generate()
-    
-    print("\n步骤3: 创建自定义语义分析器")
-    print("-" * 70)
-    
-    # 自定义语义分析器
-    class AssignmentAnalyzer(PL0SemanticAnalyzer):
-        def semantic_action(self, production, symbols):
-            prod_str = str(production)
-            
-            # S -> id := E (赋值语句)
-            if ":=" in prod_str and len(symbols) == 3:
-                var = symbols[0].value
-                expr = symbols[2].value
-                self.emit(f"{var} = {expr}")
-                return None
-            
-            # E -> E + T (加法)
-            elif prod_str == "E -> E + T":
-                left = symbols[0].value
-                right = symbols[2].value
-                temp = self.new_temp()
-                self.emit(f"{temp} = {left} + {right}")
-                return temp
-            
-            # 其他: 传递值
-            else:
-                if symbols:
-                    return symbols[0].value
-                return None
-    
-    analyzer = AssignmentAnalyzer()
-    print("  自定义语义分析器已创建")
-    
-    print("\n步骤4: 执行语法分析")
-    print("-" * 70)
-    parser = LRParser(grammar, action_table, goto_table,
-                     semantic_handler=analyzer.semantic_action)
-    
-    # 输入: x := a + b
-    tokens = [
-        ('id', 'x'),
-        (':=', ':='),
-        ('id', 'a'),
-        ('+', '+'),
-        ('id', 'b')
-    ]
-    
-    print("输入: x := a + b")
-    success = parser.parse(tokens)
-    
-    if success:
-        print("\n步骤5: 查看生成的中间代码")
-        print("-" * 70)
-        analyzer.print_intermediate_code()
-
-
 def save_tables_to_json(action_table, goto_table, filename="parsing_tables.json"):
     """
     将分析表保存为JSON格式,便于其他程序使用
@@ -443,12 +276,6 @@ def main():
     # 演示3: LR分析驱动程序
     demo_parser_driver(grammar, action_table, goto_table)
     
-    # 演示4: 语义接口说明
-    demo_semantic_interface()
-    
-    # 演示5: 完整工作流程
-    example_full_workflow()
-    
     # 保存分析表
     save_tables_to_json(action_table, goto_table)
     
@@ -462,14 +289,12 @@ def main():
   - lexical/  : 词法分析生成器(Thompson构造、子集构造、DFA最小化)
   - syntax/   : 语法分析生成器(FIRST/FOLLOW、LR(1)、LALR(1))
   - driver/   : LR分析驱动程序(语义动作接口)
+  - utils/    : 工具函数(日志、文件I/O)
   - main.py   : 主演示程序(本文件)
   - parsing_tables.json : 导出的分析表
 
-给同学B的接口:
-  1. 继承 SemanticAnalyzer 类
-  2. 重写 semantic_action() 方法
-  3. 将方法传递给 LRParser 的 semantic_handler 参数
-  4. 使用提供的工具函数生成中间代码
+给同学B的接口说明:
+  详见 API_FOR_TEAMMATE_B.md 文档
 
 答辩演示建议:
   1. 运行此程序展示完整流程

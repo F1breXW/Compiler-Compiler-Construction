@@ -1,32 +1,56 @@
 {
   "action_table": {
-    "(0, num)": {
-      "action": "shift",
-      "value": 5
-    },
     "(0, id)": {
       "action": "shift",
       "value": 6
     },
-    "(0, ()": {
+    "(0, num)": {
       "action": "shift",
       "value": 2
     },
-    "(1, $)": {
-      "action": "accept",
-      "value": 0
-    },
-    "(2, num)": {
+    "(0, ()": {
       "action": "shift",
-      "value": 5
+      "value": 1
     },
-    "(2, id)": {
+    "(1, id)": {
       "action": "shift",
       "value": 6
     },
-    "(2, ()": {
+    "(1, num)": {
       "action": "shift",
       "value": 2
+    },
+    "(1, ()": {
+      "action": "shift",
+      "value": 1
+    },
+    "(2, $)": {
+      "action": "reduce",
+      "value": 10
+    },
+    "(2, +)": {
+      "action": "reduce",
+      "value": 10
+    },
+    "(2, /)": {
+      "action": "reduce",
+      "value": 10
+    },
+    "(2, ))": {
+      "action": "reduce",
+      "value": 10
+    },
+    "(2, *)": {
+      "action": "reduce",
+      "value": 10
+    },
+    "(2, -)": {
+      "action": "reduce",
+      "value": 10
+    },
+    "(3, $)": {
+      "action": "reduce",
+      "value": 1
     },
     "(3, -)": {
       "action": "shift",
@@ -36,63 +60,55 @@
       "action": "shift",
       "value": 9
     },
-    "(3, $)": {
-      "action": "reduce",
-      "value": 1
-    },
-    "(4, /)": {
-      "action": "shift",
-      "value": 11
-    },
-    "(4, *)": {
-      "action": "shift",
-      "value": 12
-    },
     "(4, $)": {
       "action": "reduce",
-      "value": 4
+      "value": 7
     },
     "(4, +)": {
       "action": "reduce",
-      "value": 4
+      "value": 7
+    },
+    "(4, /)": {
+      "action": "reduce",
+      "value": 7
     },
     "(4, ))": {
       "action": "reduce",
-      "value": 4
+      "value": 7
+    },
+    "(4, *)": {
+      "action": "reduce",
+      "value": 7
     },
     "(4, -)": {
       "action": "reduce",
-      "value": 4
+      "value": 7
+    },
+    "(5, /)": {
+      "action": "shift",
+      "value": 11
+    },
+    "(5, *)": {
+      "action": "shift",
+      "value": 12
     },
     "(5, +)": {
       "action": "reduce",
-      "value": 10
-    },
-    "(5, *)": {
-      "action": "reduce",
-      "value": 10
-    },
-    "(5, -)": {
-      "action": "reduce",
-      "value": 10
-    },
-    "(5, /)": {
-      "action": "reduce",
-      "value": 10
+      "value": 4
     },
     "(5, ))": {
       "action": "reduce",
-      "value": 10
+      "value": 4
     },
     "(5, $)": {
       "action": "reduce",
-      "value": 10
+      "value": 4
     },
-    "(6, -)": {
+    "(5, -)": {
       "action": "reduce",
-      "value": 9
+      "value": 4
     },
-    "(6, /)": {
+    "(6, +)": {
       "action": "reduce",
       "value": 9
     },
@@ -100,11 +116,7 @@
       "action": "reduce",
       "value": 9
     },
-    "(6, $)": {
-      "action": "reduce",
-      "value": 9
-    },
-    "(6, +)": {
+    "(6, /)": {
       "action": "reduce",
       "value": 9
     },
@@ -112,29 +124,21 @@
       "action": "reduce",
       "value": 9
     },
+    "(6, -)": {
+      "action": "reduce",
+      "value": 9
+    },
+    "(6, $)": {
+      "action": "reduce",
+      "value": 9
+    },
     "(7, $)": {
-      "action": "reduce",
-      "value": 7
+      "action": "accept",
+      "value": 0
     },
-    "(7, +)": {
-      "action": "reduce",
-      "value": 7
-    },
-    "(7, *)": {
-      "action": "reduce",
-      "value": 7
-    },
-    "(7, -)": {
-      "action": "reduce",
-      "value": 7
-    },
-    "(7, /)": {
-      "action": "reduce",
-      "value": 7
-    },
-    "(7, ))": {
-      "action": "reduce",
-      "value": 7
+    "(8, +)": {
+      "action": "shift",
+      "value": 9
     },
     "(8, ))": {
       "action": "shift",
@@ -144,67 +148,55 @@
       "action": "shift",
       "value": 10
     },
-    "(8, +)": {
-      "action": "shift",
-      "value": 9
-    },
-    "(9, num)": {
-      "action": "shift",
-      "value": 5
-    },
     "(9, id)": {
       "action": "shift",
       "value": 6
     },
-    "(9, ()": {
+    "(9, num)": {
       "action": "shift",
       "value": 2
     },
-    "(10, num)": {
+    "(9, ()": {
       "action": "shift",
-      "value": 5
+      "value": 1
     },
     "(10, id)": {
       "action": "shift",
       "value": 6
     },
+    "(10, num)": {
+      "action": "shift",
+      "value": 2
+    },
     "(10, ()": {
       "action": "shift",
-      "value": 2
-    },
-    "(11, num)": {
-      "action": "shift",
-      "value": 5
-    },
-    "(11, ()": {
-      "action": "shift",
-      "value": 2
+      "value": 1
     },
     "(11, id)": {
       "action": "shift",
       "value": 6
     },
-    "(12, num)": {
-      "action": "shift",
-      "value": 5
-    },
-    "(12, ()": {
+    "(11, num)": {
       "action": "shift",
       "value": 2
+    },
+    "(11, ()": {
+      "action": "shift",
+      "value": 1
     },
     "(12, id)": {
       "action": "shift",
       "value": 6
     },
+    "(12, num)": {
+      "action": "shift",
+      "value": 2
+    },
+    "(12, ()": {
+      "action": "shift",
+      "value": 1
+    },
     "(13, $)": {
-      "action": "reduce",
-      "value": 8
-    },
-    "(13, +)": {
-      "action": "reduce",
-      "value": 8
-    },
-    "(13, *)": {
       "action": "reduce",
       "value": 8
     },
@@ -212,21 +204,21 @@
       "action": "reduce",
       "value": 8
     },
+    "(13, +)": {
+      "action": "reduce",
+      "value": 8
+    },
     "(13, /)": {
+      "action": "reduce",
+      "value": 8
+    },
+    "(13, *)": {
       "action": "reduce",
       "value": 8
     },
     "(13, ))": {
       "action": "reduce",
       "value": 8
-    },
-    "(14, $)": {
-      "action": "reduce",
-      "value": 2
-    },
-    "(14, ))": {
-      "action": "reduce",
-      "value": 2
     },
     "(14, /)": {
       "action": "shift",
@@ -236,11 +228,19 @@
       "action": "shift",
       "value": 12
     },
-    "(14, -)": {
+    "(14, +)": {
       "action": "reduce",
       "value": 2
     },
-    "(14, +)": {
+    "(14, ))": {
+      "action": "reduce",
+      "value": 2
+    },
+    "(14, $)": {
+      "action": "reduce",
+      "value": 2
+    },
+    "(14, -)": {
       "action": "reduce",
       "value": 2
     },
@@ -256,11 +256,11 @@
       "action": "reduce",
       "value": 3
     },
-    "(15, ))": {
+    "(15, +)": {
       "action": "reduce",
       "value": 3
     },
-    "(15, +)": {
+    "(15, ))": {
       "action": "reduce",
       "value": 3
     },
@@ -268,7 +268,7 @@
       "action": "reduce",
       "value": 3
     },
-    "(16, ))": {
+    "(16, -)": {
       "action": "reduce",
       "value": 6
     },
@@ -280,31 +280,19 @@
       "action": "reduce",
       "value": 6
     },
-    "(16, *)": {
-      "action": "reduce",
-      "value": 6
-    },
-    "(16, -)": {
-      "action": "reduce",
-      "value": 6
-    },
     "(16, /)": {
       "action": "reduce",
       "value": 6
     },
-    "(17, /)": {
+    "(16, ))": {
       "action": "reduce",
-      "value": 5
+      "value": 6
+    },
+    "(16, *)": {
+      "action": "reduce",
+      "value": 6
     },
     "(17, $)": {
-      "action": "reduce",
-      "value": 5
-    },
-    "(17, ))": {
-      "action": "reduce",
-      "value": 5
-    },
-    "(17, -)": {
       "action": "reduce",
       "value": 5
     },
@@ -312,23 +300,35 @@
       "action": "reduce",
       "value": 5
     },
+    "(17, ))": {
+      "action": "reduce",
+      "value": 5
+    },
+    "(17, /)": {
+      "action": "reduce",
+      "value": 5
+    },
     "(17, *)": {
+      "action": "reduce",
+      "value": 5
+    },
+    "(17, -)": {
       "action": "reduce",
       "value": 5
     }
   },
   "goto_table": {
-    "(0, T)": 4,
     "(0, E)": 3,
-    "(0, F)": 7,
-    "(0, S)": 1,
-    "(2, T)": 4,
-    "(2, E)": 8,
-    "(2, F)": 7,
+    "(0, F)": 4,
+    "(0, T)": 5,
+    "(0, S)": 7,
+    "(1, F)": 4,
+    "(1, E)": 8,
+    "(1, T)": 5,
     "(9, T)": 14,
-    "(9, F)": 7,
+    "(9, F)": 4,
+    "(10, F)": 4,
     "(10, T)": 15,
-    "(10, F)": 7,
     "(11, F)": 16,
     "(12, F)": 17
   },
