@@ -55,7 +55,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
 
     def handle_program(self, production: Production, symbols: List[Symbol]) -> Any:
         if len(symbols) == 2: # P -> S P
-            return None
+            return True
         elif (len(symbols) == 0) or symbols[0] == 'ε': # P -> ε
             if self.block_level > 0:
                 print(f"程序结束，但仍有{self.block_level}给未关闭的复合语句块")
@@ -81,7 +81,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
 
             self.add_symbol(var_name, {"type": var_type, "initialized": False})
             print(f"    [语义] 声明变量: {var_name} : {var_type}")
-            return None
+            return True
 
         elif ":=" in prod_str: # S -> id := E ;
             # 赋值语句
@@ -120,7 +120,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
                 print(f"    [语义] 赋值: {var_name} := {expr_attr.get('temp')}")
             else:
                 print(f"    [语义] 赋值: {var_name} := {expr_attr.get('value')}")
-            return None
+            return True
 
         else:  # S → E ;
             # 表达式语句
@@ -129,7 +129,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
                 # 表达式有结果，生成中间代码
                 temp_var = expr_attr["temp"]
                 print(f"    [语义] 表达式语句，结果在 {temp_var}")
-            return None
+            return True
 
 
 
@@ -255,7 +255,8 @@ class MySemanticAnalyzer(SemanticAnalyzer):
                 # 检查变量是否初始化
                 var_info = self.symbol_table[var_name]
                 if not var_info["initialized"]:
-                    print(f"    [语义警告] 变量 '{var_name}' 可能未初始化")
+                    print(f"    [语义错误] 变量 '{var_name}' 可能未初始化")
+                    return {"type": "error", "value": None}
 
                 return {
                     "type": var_info["type"],

@@ -101,7 +101,7 @@ def test_advanced_file(config_path: str, source_file: str, verbose: bool = True)
         return False
     
     # 输出分析结果
-    if result:
+    if result == 1:
         print(f"\n[分析结果] 合法语句")
         
         # 输出产生式序列
@@ -139,6 +139,11 @@ def test_advanced_file(config_path: str, source_file: str, verbose: bool = True)
             print(f"\n[已保存] 中间代码已保存至文件: {output_file}")
         
         return True
+    elif  result == -1:
+        print(f"\n{'=' * 40}")
+        print(f"[分析结果] 非法语句 (检测到语义错误)")
+        print(f"{'=' * 40}")
+        return False
     else:
         print(f"\n{'='*40}")
         print(f"[分析结果] 非法语句 (检测到语法错误)")

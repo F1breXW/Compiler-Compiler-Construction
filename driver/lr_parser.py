@@ -46,7 +46,7 @@ class LRParser:
         # 语法树构建器（课程要求）
         self.tree_builder: ParseTreeBuilder = ParseTreeBuilder()
     
-    def parse(self, tokens: List[Tuple[str, Any]]) -> bool:
+    def parse(self, tokens: List[Tuple[str, Any]]) -> int:
         """
         LR分析主函数
         
@@ -102,19 +102,19 @@ class LRParser:
                 input_index += 1
             
             elif action == 'reduce':
-                if not self._handle_reduce(value, step):
-                    return False
+                if self._handle_reduce(value, step) == -1:
+                    return -1
             
             elif action == 'accept':
                 print(f"  动作: ACCEPT")
                 print("\n" + "="*60)
                 print("分析成功!")
                 print("="*60)
-                return True
+                return 1
             
             else:
                 print(f"\n[错误] 未知动作: {action}")
-                return False
+                return 0
     
     def _handle_shift(self, state: int, token: str, value: Any, step: int):
         """处理shift动作"""
@@ -133,7 +133,7 @@ class LRParser:
             'symbol': token
         })
     
-    def _handle_reduce(self, prod_id: int, step: int) -> bool:
+    def _handle_reduce(self, prod_id: int, step: int) -> int:
         """处理reduce动作"""
         production = self.grammar.productions[prod_id]
         print(f"  动作: REDUCE {production}")
@@ -168,13 +168,15 @@ class LRParser:
         
         if goto_key not in self.goto_table:
             print(f"\n[错误] GOTO表错误: 状态{goto_state}无法处理非终结符'{production.left}'")
-            return False
+            return 0
         
         next_state = self.goto_table[goto_key]
         self.state_stack.append(next_state)
         
         # 创建归约后的符号
         # 如果semantic_value是字典（语义属性），则设置为attributes
+        if semantic_value is None:
+            return -1
         if isinstance(semantic_value, dict):
             new_symbol = Symbol(production.left, None, semantic_value)
         else:
@@ -192,7 +194,7 @@ class LRParser:
             'goto': next_state
         })
         
-        return True
+        return 1
     
     def _handle_semantic_action(self, production, symbols: List[Symbol]) -> Any:
         """
