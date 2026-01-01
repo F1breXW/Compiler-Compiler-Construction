@@ -19,19 +19,21 @@ from syntax import Grammar, ParserGenerator
 from utils.config_loader import ConfigLoader
 
 
-def generate_table_html(config_path: str, output_path: str = None):
+def generate_table_html(config_path: str, output_path: str = None, action_table=None, goto_table=None):
     """
     生成LALR(1)分析表的HTML可视化
     
     Args:
         config_path: 文法配置文件路径
         output_path: 输出HTML文件路径（默认: visualizations/{文法名}_table.html）
+        action_table: 预生成的ACTION表（可选）
+        goto_table: 预生成的GOTO表（可选）
     """
     # 加载配置
     loader = ConfigLoader(os.path.dirname(os.path.abspath(config_path)))
     config = loader.load(os.path.basename(config_path))
     
-    # 生成语法分析器
+    # 总是构建文法对象，因为后续可视化需要用到产生式信息
     grammar = Grammar()
     for rule_str in config.grammar_rules:
         left, right = rule_str.split('->')
@@ -39,8 +41,13 @@ def generate_table_html(config_path: str, output_path: str = None):
         right = [s.strip() for s in right.strip().split()]
         grammar.add_production(left, right)
     
-    parser_generator = ParserGenerator(grammar)
-    action_table, goto_table = parser_generator.generate()
+    if action_table is None or goto_table is None:
+        # 生成语法分析器
+        parser_generator = ParserGenerator(grammar)
+        action_table, goto_table = parser_generator.generate()
+    else:
+        # 如果使用了预生成的表，必须手动增广文法以匹配产生式ID
+        grammar.augment()
     
     # 获取所有状态和符号
     states = sorted(set(s for s, _ in action_table.keys()) | set(s for s, _ in goto_table.keys()))

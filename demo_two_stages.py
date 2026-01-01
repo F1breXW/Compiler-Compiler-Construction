@@ -90,30 +90,23 @@ def stage1_generate_compiler(config_path: str):
     parser_generator = ParserGenerator(grammar)
     action_table, goto_table = parser_generator.generate()
     
+    # 计算状态数
+    states = set()
+    for state, _ in action_table.keys():
+        states.add(state)
+    for state, _ in goto_table.keys():
+        states.add(state)
+    # 确保包含状态0（初始状态），即使它没有任何动作（虽然不太可能）
+    states.add(0)
+    
     print(f"\n✅ 语法分析器生成完成！")
-    print(f"   - LALR(1)状态数: {len(goto_table)}")
-    
-    # 统计ACTION表和GOTO表项数
-    action_count = 0
-    for state_actions in action_table.values():
-        if isinstance(state_actions, dict):
-            action_count += len(state_actions)
-        else:
-            action_count += 1
-    
-    goto_count = 0
-    for state_gotos in goto_table.values():
-        if isinstance(state_gotos, dict):
-            goto_count += len(state_gotos)
-        else:
-            goto_count += 1
-    
-    print(f"   - ACTION表项数: {action_count}")
-    print(f"   - GOTO表项数: {goto_count}")
+    print(f"   - LALR(1)状态数: {len(states)}")
+    print(f"   - ACTION表项数: {len(action_table)}")
+    print(f"   - GOTO表项数: {len(goto_table)}")
     
     # 可视化分析表
     html_file = f"visualizations/{config.name.replace(' ', '_')}_lalr_table.html"
-    generate_table_html(config_path, html_file)
+    generate_table_html(config_path, html_file, action_table, goto_table)
     print(f"   - [可视化] LALR分析表已导出: {html_file}")
 
     print("\n" + "=" * 80)
