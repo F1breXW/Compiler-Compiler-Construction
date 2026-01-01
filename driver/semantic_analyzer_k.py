@@ -36,7 +36,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
         F -> ( E ) | id | num
         """
         prod_name = str(production)
-        print(f"    [语义动作]处理产生式：{prod_name}")
+        print(f"    [语义动作] 处理产生式：{prod_name}")
         left = production.left
         if left == 'P':
             return self.handle_program(production, symbols)
@@ -175,7 +175,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             return {
                 "type": "int",
                 "temp": temp_var,
-                "value": None
+                "value": f"{left_val} {op} {right_val}"
             }
 
         return {"type": "error", "value": None}
@@ -220,7 +220,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             return {
                 "type": "int",
                 "temp": temp_var,
-                "value": None
+                "value": f"{left_val} {op} {right_val}"
             }
 
         return {"type": "error", "value": None}
