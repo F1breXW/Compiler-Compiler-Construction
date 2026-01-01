@@ -1,231 +1,110 @@
-# 编译器生成器 - PL/0语言编译器项目
+# Compiler-Compiler (编译器生成器)
 
-## 目录
+一个基于Python实现的编译器生成器，能够根据输入的文法规则自动生成完整的编译器前端（词法分析器 + 语法分析器 + 中间代码生成器）。
 
-- [项目简介](#项目简介)
-- [功能模块](#功能模块)
-  - [1. 词法分析生成器](#1-词法分析生成器)
-  - [2. 语法分析生成器](#2-语法分析生成器)
-  - [3. LR分析驱动程序](#3-lr分析驱动程序)
-- [项目结构](#项目结构)
-- [快速开始](#快速开始)
-  - [运行完整演示](#运行完整演示)
-  - [演示内容（符合课程要求）](#演示内容符合课程要求)
-- [给负责语义分析和中间代码生成的同学的接口文档](#给负责语义分析和中间代码生成的同学的接口文档)
-- [算法详解](#算法详解)
-  - [Thompson构造法](#thompson构造法-re--nfa)
-  - [子集构造法](#子集构造法-nfa--dfa)
-  - [DFA最小化](#dfa最小化-hopcroft算法)
-  - [LR(1)项目集构建](#lr1项目集构建)
-  - [LALR(1)压缩](#lalr1压缩)
-- [演示输出说明](#演示输出说明)
-- [技术特点](#技术特点)
-- [答辩演示建议](#答辩演示建议)
-- [依赖项](#依赖项)
-- [致谢](#致谢)
+## 📋 项目简介
 
----
+本项目实现了一个完整的**Compiler-Compiler**系统，主要功能包括：
 
-## 项目简介
+### 核心功能
 
-这是一个针对**PL/0语言**的编译器生成器，实现了从形式化规则自动生成词法分析表和语法分析表的完整功能。项目采用Python面向对象设计，包含详尽的中文注释，便于学习和扩展。
+1. **词法分析器自动生成**
+   - 输入：正则表达式定义的词法规则
+   - 输出：DFA（确定有限自动机）词法分析器
+   - 技术：Thompson构造 → NFA → 子集构造 → DFA → 最小化
 
-### 开发团队
-- **2354274 叶贤伟** 核心算法引擎 - 词法/语法分析生成器
-- **2353408 周由**: 语义分析逻辑 - 接入语义动作接口
+2. **语法分析器自动生成**
+   - 输入：上下文无关文法（CFG）
+   - 输出：LALR(1)语法分析器
+   - 技术：LR(1)项目集构造 → LALR压缩 → 分析表生成
 
----
+3. **中间代码生成**
+   - 支持类型系统（int/bool）
+   - 支持控制流（if/else、while）
+   - 生成三地址码（Three-Address Code）
+   - 采用回填技术处理跳转
 
-## 功能模块
+### 特点
 
-### 1. 词法分析生成器 (`lexical_generator.py`)
+- ✅ **真正的自动生成**：不依赖手写的分析表
+- ✅ **多文法支持**：可处理任意上下文无关文法
+- ✅ **完整的编译器前端**：从词法分析到中间代码生成
+- ✅ **工程化设计**：模块化、可扩展、易维护
 
-实现正则表达式到词法分析表的完整转换流程：
+## 🚀 快速开始
 
-#### 核心算法
-- **Thompson构造法** (RE → NFA)
-  - 基本符号处理
-  - 连接操作 (concatenation)
-  - 选择操作 (alternation)
-  - Kleene闭包 (star)
+### 环境要求
 
-- **子集构造法** (NFA → DFA)
-  - Epsilon闭包计算
-  - Move操作
-  - 状态子集映射
+- Python 3.7+
+- 无需额外依赖库（仅使用标准库）
 
-- **DFA最小化** (等价状态分割法)
-  - Hopcroft算法
-  - 状态等价类划分
-  - 转换表压缩
+### 基本使用
 
-#### 输出
-- `transition_table`: 状态转换表 `{state: {symbol: next_state}}`
-- `accepting_states`: 接受状态集合
+#### 方式1：分步骤演示（推荐）
 
-#### 使用示例
-```python
-from lexical_generator import LexicalGenerator
+```bash
+# 阶段1：输入文法 → 自动生成编译器
+# 阶段2：输入源程序 → 输出分析结果
+python demo_two_stages.py <文法配置文件> <源程序文件>
 
-generator = LexicalGenerator()
-table, accepting = generator.generate("begin", "KEYWORD")
+# 示例
+python demo_two_stages.py configs/grammar1_arithmetic.json test_programs/arithmetic_1.txt
 ```
 
----
+#### 方式2：一步完成
 
-### 2. 语法分析生成器 (`parser_generator.py`)
-
-实现LALR(1)分析表的自动构建：
-
-#### 核心算法
-- **FIRST集和FOLLOW集计算**
-  - 终结符和非终结符的FIRST集
-  - 非终结符的FOLLOW集
-  - 符号串的FIRST集
-
-- **LR(1)项目集规范族构建**
-  - 项目闭包 (Closure)
-  - GOTO函数
-  - 状态转移图
-
-- **LALR(1)压缩**
-  - 同心项识别 (Core-identical items)
-  - 向前看符号合并
-  - 状态数量优化
-
-- **分析表生成**
-  - ACTION表 (shift/reduce/accept)
-  - GOTO表
-  - 冲突检测
-
-#### 输入格式
-```python
-from parser_generator import Grammar
-
-grammar = Grammar()
-grammar.add_production("E", ["E", "+", "T"])
-grammar.add_production("E", ["T"])
-grammar.add_production("T", ["id"])
+```bash
+python test_from_file.py <文法配置文件> <源程序文件>
 ```
 
-#### 输出
-- `action_table`: `{(state, terminal): (action, value)}`
-- `goto_table`: `{(state, non_terminal): next_state}`
+### 测试中间代码生成
 
----
-
-### 3. LR分析驱动程序 (`parser_driver.py`)
-
-基于栈的LR分析器，提供语义动作接口：
-
-#### 主要功能
-- **LR分析算法**
-  - 状态栈和符号栈管理
-  - Shift/Reduce操作
-  - 错误检测和报告
-  - 分析过程可视化
-
-- **语义动作接口** (为同学B预留)
-  ```python
-  def semantic_handler(production, symbols):
-      # production: 使用的产生式
-      # symbols: 归约的符号列表
-      # 返回: 综合属性值
-      
-      if production.left == "E" and len(symbols) == 3:
-          # E -> E + T
-          left = symbols[0].value
-          right = symbols[2].value
-          temp = new_temp()
-          emit(f"{temp} = {left} + {right}")
-          return temp
-      
-      return None
-  ```
-
-- **SemanticAnalyzer基类**
-  - `new_temp()`: 生成临时变量
-  - `emit(code)`: 生成三地址码
-  - `add_symbol(name, type)`: 符号表操作
-  - `lookup_symbol(name)`: 符号查询
-
-#### 使用示例
-```python
-from parser_driver import LRParser, SemanticAnalyzer
-
-analyzer = MySemanticAnalyzer()
-parser = LRParser(grammar, action_table, goto_table,
-                 semantic_handler=analyzer.semantic_action)
-success = parser.parse(tokens)
+```bash
+python tests/intermediate_code/test_ic_generation.py <源程序文件>
 ```
 
----
-
-## 项目结构
+## 📊 项目结构
 
 ```
 Compiler-Compiler-Construction/
-│
-├── lexical/                    # 词法分析包（8个文件）
-│   ├── __init__.py
-│   ├── state.py                # 状态类
-│   ├── nfa.py                  # 非确定性有限自动机
-│   ├── dfa.py                  # 确定性有限自动机
-│   ├── thompson.py             # Thompson构造算法
-│   ├── subset_construction.py  # 子集构造算法
-│   ├── minimization.py         # Hopcroft最小化算法
-│   └── generator.py            # 词法生成器主类
-│
-├── syntax/                     # 语法分析包（8个文件）
-│   ├── __init__.py
-│   ├── grammar.py              # 文法类
-│   ├── production.py           # 产生式类
-│   ├── lr1_item.py             # LR(1)项目类
-│   ├── first_follow.py         # FIRST/FOLLOW集计算
-│   ├── lr1_builder.py          # LR(1)项目集构建
-│   ├── lalr_builder.py         # LALR(1)压缩算法
-│   ├── table_builder.py        # 分析表构建
-│   └── generator.py            # 语法生成器主类
-│
-├── driver/                     # 驱动程序包（5个文件）
-│   ├── __init__.py
-│   ├── symbol.py               # 符号类
-│   ├── lr_parser.py            # LR分析器
-│   ├── semantic_analyzer.py    # 语义分析器基类
-│   └── pl0_semantic_analyzer.py # PL/0语义分析器示例
-│
-├── utils/                      # 工具包（3个文件）
-│   ├── __init__.py
-│   ├── logger.py               # 日志工具
-│   └── file_io.py              # 文件I/O工具
-│
-├── main.py                     # 主演示程序（507行）
-├── API_FOR_TEAMMATE_B.md       # 给同学B的接口文档
-└── README.md                   # 项目文档 (本文件)
-
-总计：25个Python文件，~2500行代码
+├── lexical/              # 词法分析模块
+│   ├── regex_parser.py   # 正则表达式解析
+│   ├── nfa.py            # NFA构造（Thompson构造）
+│   ├── dfa.py            # DFA构造（子集构造 + 最小化）
+│   └── scanner.py        # 词法分析器
+├── syntax/               # 语法分析模块
+│   ├── grammar.py        # 文法定义
+│   ├── lr1_builder.py    # LR(1)项目集构造
+│   ├── lalr_builder.py   # LALR(1)压缩
+│   └── generator.py      # 分析表生成
+├── driver/               # 分析驱动器
+│   ├── lr_parser.py      # LR分析器
+│   └── semantic.py       # 语义分析和中间代码生成
+├── configs/              # 文法配置文件
+│   ├── grammar1_arithmetic.json      # 算术表达式文法
+│   ├── grammar2_assignment.json      # 赋值语句文法
+│   └── grammar_imperative.json       # 命令式语言文法
+├── test_programs/        # 测试源程序
+│   ├── arithmetic_1.txt              # 合法程序
+│   ├── arithmetic_error1.txt         # 错误程序（负例测试）
+│   └── intermediate_code/            # 中间代码测试
+└── tests/                # 测试脚本
+    ├── test_lex_syn.py               # 词法语法测试
+    └── intermediate_code/            # 中间代码测试
 ```
 
----
+## 📚 文档
 
-## 快速开始
+- **[IMPLEMENTATION.md](IMPLEMENTATION.md)** - 技术实现详解（算法原理、数据结构）
+- **[DEMO_GUIDE.md](DEMO_GUIDE.md)** - 演示指南（课程项目展示）
+- **[DEMO_CHEAT_SHEET.md](DEMO_CHEAT_SHEET.md)** - 演示备忘单（快速参考）
+- **[ERROR_TEST_README.md](ERROR_TEST_README.md)** - 错误测试说明
 
-### 运行完整演示
-```bash
-python main.py
-```
+## 🎯 演示示例
 
-### 演示内容（符合课程要求）
+### 示例1：算术表达式文法
 
-本程序完整演示编译器生成器的自动生成能力，**满足课程要求：测试多个文法（≥2个），每个文法测试多个程序（≥2个）**
-
-#### 第一部分：词法分析器自动生成（3个词法规则）
-1. 关键字识别: `begin` → 生成5状态DFA
-2. 关键字识别: `if` → 生成2状态DFA  
-3. 关键字识别: `while` → 生成5状态DFA
-
-#### 第二部分：语法分析器测试 - 文法1（算术表达式）
-**文法定义：**
+**输入文法**（configs/grammar1_arithmetic.json）：
 ```
 S -> E
 E -> E + T | E - T | T
@@ -233,410 +112,82 @@ T -> T * F | T / F | F
 F -> ( E ) | id | num
 ```
 
-**测试程序：**
-1. ✅ 合法程序: `a + b * c`
-   - 输出：产生式序列（9条归约）+ 中间代码（2条）
-2. ✅ 合法程序: `(a + b) * c`
-   - 输出：产生式序列（19条归约）+ 中间代码（3条）
-3. ❌ 非法程序: `a + + b`
-   - 输出：语法错误检测
+**自动生成**：
+- 词法规则：8个
+- DFA状态：9个
+- LALR(1)状态：18个
 
-#### 第三部分：语法分析器测试 - 文法2（赋值语句）
-**文法定义：**
-```
-S -> id := E
-E -> E + T | E - T | T
-T -> id | num
-```
+**测试源程序**：`id + id * id`
 
-**测试程序：**
-1. ✅ 合法程序: `x := a + b`
-   - 输出：产生式序列（10条归约）+ 中间代码（2条）
-2. ✅ 合法程序: `result := 100 - x`
-   - 输出：产生式序列（10条归约）+ 中间代码（2条）
-3. ❌ 非法程序: `x a + b`
-   - 输出：语法错误检测
+**输出结果**：
+- 合法性判断：✅ 合法语句
+- 产生式序列：9步
+- 语法树：JSON格式
 
-**测试总结：**
-- ✅ 测试了2个不同的文法
-- ✅ 每个文法测试了3个程序（2个合法 + 1个非法）
-- ✅ 输出了合法性判断和产生式序列
-- ✅ 生成了中间代码（三地址码）
+### 示例2：中间代码生成
 
-### 测试单个模块
-
-#### 词法分析器
-```bash
-python lexical_generator.py
+**输入源程序**：
+```c
+int x ;
+int y ;
+x := 10 ;
+y := 20 ;
+if ( x < y ) then x := x + 1 ;
 ```
 
-#### 语法分析器
-```bash
-python parser_generator.py
+**生成的三地址码**：
+```
+1: x := 10
+2: y := 20
+3: t1 := x < y
+4: if_false t1 goto L1
+5: t2 := x + 1
+6: x := t2
+7: L1:
 ```
 
-#### 驱动程序
-```bash
-python parser_driver.py
-```
+## ✅ 测试覆盖
+
+### 第一部分：词法和语法分析
+- ✅ 2个不同文法（算术表达式、赋值语句）
+- ✅ 每个文法 × 2个合法程序 = 4个正例测试（全部通过）
+- ✅ 错误程序测试 = 2个负例测试（正确拒绝）
+- ✅ 通过率：100%
+
+### 第二部分：中间代码生成
+- ✅ 1个命令式语言文法
+- ✅ 4个测试程序（算术运算、if/else、while、布尔表达式）
+- ✅ 通过率：100%
+
+## 🔧 技术亮点
+
+1. **Thompson构造法** - 将正则表达式转换为NFA
+2. **子集构造法** - 将NFA确定化为DFA
+3. **DFA最小化** - 等价状态分割法（Hopcroft算法）
+4. **LALR(1)构造** - LR(1)项目集构造 + 同心集合并
+5. **回填技术** - 控制流跳转的延迟绑定
+
+详细技术实现请参考 [IMPLEMENTATION.md](IMPLEMENTATION.md)
+
+## 🎓 课程要求完成情况
+
+### A要求：自动生成
+- ✅ 对不同的文法，能自动生成词法分析器和语法分析器
+- ✅ 测试了2个不同文法（词法规则数、DFA状态数、LALR状态数都不同）
+- ✅ 证明了真正的自动生成能力
+
+### B要求：正确性测试
+- ✅ 对生成的分析器，输入不同的源程序
+- ✅ 正例测试：合法程序被正确接受
+- ✅ 负例测试：非法程序被正确拒绝
+- ✅ 全面验证了分析器的正确性
+
+## 👥 开发团队
+
+- **2354274 叶贤伟** - 词法/语法分析器自动生成
+- **2353408 周由** - 语义分析和中间代码生成
 
 ---
 
-## 给负责语义分析和中间代码生成的同学的接口文档
-
-### 步骤1: 创建自定义语义分析器
-
-继承`SemanticAnalyzer`类：
-
-```python
-from parser_driver import SemanticAnalyzer, Symbol
-from parser_generator import Production
-
-class MySemanticAnalyzer(SemanticAnalyzer):
-    def semantic_action(self, production: Production, symbols: List[Symbol]):
-        """
-        语义动作处理函数
-        
-        参数:
-            production: 当前归约的产生式
-            symbols: 归约的符号列表(从左到右)
-        
-        返回:
-            该非终结符的综合属性值
-        """
-        # 根据产生式执行不同的语义动作
-        if str(production) == "E -> E + T":
-            # 处理加法
-            left = symbols[0].value
-            right = symbols[2].value
-            temp = self.new_temp()
-            self.emit(f"{temp} = {left} + {right}")
-            return temp
-        
-        elif str(production) == "S -> id := E":
-            # 处理赋值
-            var = symbols[0].value
-            expr = symbols[2].value
-            self.emit(f"{var} = {expr}")
-            return None
-        
-        # 默认: 传递第一个符号的值
-        return symbols[0].value if symbols else None
-```
-
-### 步骤2: 集成到分析器
-
-```python
-from parser_driver import LRParser
-
-# 创建语义分析器实例
-analyzer = MySemanticAnalyzer()
-
-# 创建LR分析器
-parser = LRParser(
-    grammar, 
-    action_table, 
-    goto_table,
-    semantic_handler=analyzer.semantic_action  # 传入语义处理函数
-)
-
-# 执行分析
-tokens = [('id', 'x'), (':=', ':='), ('num', 5)]
-success = parser.parse(tokens)
-
-# 获取结果
-if success:
-    code = analyzer.get_code()
-    analyzer.print_intermediate_code()
-    analyzer.print_symbol_table()
-```
-
-### 步骤3: 使用工具函数
-
-```python
-class MyAnalyzer(SemanticAnalyzer):
-    def semantic_action(self, production, symbols):
-        # 生成临时变量
-        t1 = self.new_temp()  # 返回 "t1"
-        t2 = self.new_temp()  # 返回 "t2"
-        
-        # 生成三地址码
-        self.emit(f"{t1} = a + b")
-        self.emit(f"{t2} = {t1} * c")
-        
-        # 符号表操作
-        self.add_symbol("x", "integer")
-        var_type = self.lookup_symbol("x")
-        
-        return t2
-```
-
----
-
-## 算法详解
-
-### Thompson构造法 (RE → NFA)
-
-**算法原理:**
-1. **基本符号**: 对于字符a，创建 `start -a→ accept`
-2. **连接**: 将第一个NFA的接受状态通过ε连接到第二个NFA的起始状态
-3. **选择**: 创建新的起始和接受状态，用ε连接两个分支
-4. **闭包**: 添加回边和跳过边
-
-**时间复杂度**: O(n)，n为正则表达式长度
-
-### 子集构造法 (NFA → DFA)
-
-**算法原理:**
-1. 初始状态 = ε-closure(NFA.start)
-2. 对每个未处理的DFA状态和每个输入符号:
-   - 计算 move(states, symbol)
-   - 计算 ε-closure(move结果)
-   - 如果是新状态，加入DFA
-3. DFA状态包含NFA接受状态 → DFA接受状态
-
-**时间复杂度**: O(2^n)，最坏情况，n为NFA状态数
-
-### DFA最小化 (Hopcroft算法)
-
-**算法原理:**
-1. 初始划分: {接受状态, 非接受状态}
-2. 迭代细化: 检查每组中的状态在相同输入下是否转移到同一分组
-3. 如果不是，分裂该组
-4. 重复直到不能再分裂
-
-**时间复杂度**: O(n log n)，n为DFA状态数
-
-### LR(1)项目集构建
-
-**Closure算法:**
-```
-Closure(I):
-  J = I
-  repeat
-    对于 [A → α·Bβ, a] ∈ J
-      对于 B → γ
-        对于 b ∈ FIRST(βa)
-          将 [B → ·γ, b] 加入 J
-  until J 不再变化
-  return J
-```
-
-**GOTO算法:**
-```
-GOTO(I, X):
-  J = { [A → αX·β, a] | [A → α·Xβ, a] ∈ I }
-  return Closure(J)
-```
-
-**时间复杂度**: O(n³)，n为文法大小
-
-### LALR(1)压缩
-
-**算法原理:**
-1. 提取每个LR(1)状态的核心(不含向前看符号)
-2. 将具有相同核心的状态合并
-3. 合并它们的向前看符号集合
-4. 更新转移关系
-
-**优势**: 状态数通常与LR(0)相同，远小于LR(1)
-
----
-
-## 演示输出说明
-
-### 词法分析器输出
-```
-[词法生成器] 开始处理正则表达式: begin
-  [1/4] Thompson构造法: RE -> NFA
-    NFA状态数: 6
-  [2/4] 子集构造法: NFA -> DFA
-    DFA状态数: 6
-  [3/4] 等价状态分割: DFA最小化
-    最小化DFA状态数: 6
-  [4/4] 生成转换表
-[词法生成器] 完成!
-```
-
-### 语法分析器输出
-```
-[语法生成器] 开始构建LALR(1)分析表
-  [计算FIRST集]
-    完成! 共计算15个符号的FIRST集
-  [计算FOLLOW集]
-    完成! 共计算5个非终结符的FOLLOW集
-  [构建LR(1)项目集规范族]
-    完成! LR(1)状态数: 42
-  [合并LR(1)为LALR(1)]
-    完成! LALR(1)状态数: 18 (从42个LR(1)状态压缩)
-  [构建分析表]
-    完成! ACTION表项: 35, GOTO表项: 12
-```
-
-### LR分析过程输出
-```
-步骤 1:
-  状态栈: [0]
-  符号栈: []
-  当前状态: 0
-  当前输入: id (位置0)
-  剩余输入: ['id', '+', 'id', '*', 'id', '$']
-  动作: SHIFT 2
-
-步骤 2:
-  状态栈: [0, 2]
-  符号栈: ['id']
-  当前状态: 2
-  当前输入: + (位置1)
-  剩余输入: ['+', 'id', '*', 'id', '$']
-  动作: REDUCE F -> id
-    [语义动作] 产生式: F -> id
-    [语义动作] 归约符号: ['id:a']
-    [语义动作] 返回值: a
-  GOTO 状态3
-
-...
-
-步骤 15:
-  状态栈: [0, 6]
-  符号栈: ['S']
-  当前状态: 6
-  当前输入: $ (位置5)
-  剩余输入: ['$']
-  动作: ACCEPT
-
-============================================================
-分析成功!
-============================================================
-
-[OK] 分析结果: 合法
-
-使用的产生式序列:
-  1. F -> id
-  2. T -> F
-  3. E -> T
-  4. F -> id
-  5. T -> F
-  6. F -> id
-  7. T -> T * F
-  8. E -> E + T
-  9. S -> E
-
-生成的中间代码:
-  1: t1 = b * c
-  2: t2 = a + t1
-```
-
----
-
-## 技术特点
-
-### 1. 完全的面向对象设计
-- 清晰的类层次结构
-- 职责分离原则
-- 易于扩展和维护
-
-### 2. 详尽的中文注释
-- 每个函数都有算法原理说明
-- 关键步骤都有注释
-- 便于学习和理解
-
-### 3. 模块化设计
-- 词法引擎和语法引擎完全解耦
-- 可独立使用或组合使用
-- 接口清晰明确
-
-### 4. 防御性编程
-- 输入验证
-- 错误检测和报告
-- 异常处理
-
-### 5. 可扩展性
-- 预留语义动作接口
-- 支持自定义语义分析器
-- 易于添加新功能
-
----
-
-## 答辩演示建议
-
-### 开场 (1分钟)
-- 项目定位：编译器生成器（Compiler-Compiler）
-- 功能：输入文法规则 → 自动生成词法/语法分析器
-- 演示结构：3个词法规则 + 2个文法（各3个测试程序）
-
-### 1. 词法分析器自动生成演示 (3分钟)
-**演示点：**
-- 输入正则表达式: `begin`, `if`, `while`
-- 展示Thompson构造 → 子集构造 → DFA最小化的完整流程
-- 对比状态数变化（NFA → DFA → 最小化DFA）
-- 展示生成的转换表结构
-
-**强调点：** 输入文法规则，自动生成分析表
-
-### 2. 语法分析器自动生成演示 - 文法1 (4分钟)
-**演示点：**
-- 定义算术表达式文法（9条产生式）
-- 展示FIRST/FOLLOW集计算结果
-- 展示LR(1) → LALR(1)压缩效果（33状态 → 18状态）
-- 展示生成的ACTION/GOTO表
-
-**测试演示：**
-- 合法程序 `a + b * c`：显示完整分析过程和产生式序列
-- 非法程序 `a + + b`：展示错误检测能力
-
-**强调点：** 多个测试程序验证分析器正确性
-
-### 3. 语法分析器自动生成演示 - 文法2 (4分钟)
-**演示点：**
-- 定义赋值语句文法（6条产生式）
-- 再次展示自动生成过程（12个LALR状态）
-- 对比两个文法的分析表结构差异
-
-**测试演示：**
-- 合法程序 `x := a + b`：分析过程 + 中间代码
-- 合法程序 `result := 100 - x`：再次验证
-- 非法程序 `x a + b`：错误处理
-
-**强调点：** 符合课程要求（≥2个文法，每个≥2个测试程序）
-
-### 4. 接口集成演示 (2分钟)
-- 展示SemanticAnalyzer基类设计
-- 演示语义动作钩子机制
-- 展示如何为同学B提供接口（详见API_FOR_TEAMMATE_B.md）
-- 展示生成的中间代码（三地址码）
-
-### 5. 技术亮点总结 (1分钟)
-- ✅ 完整实现Thompson + 子集构造 + Hopcroft最小化
-- ✅ 完整实现LR(1) + LALR(1)压缩
-- ✅ 模块化设计（4个包，25个文件）
-- ✅ 详尽中文注释（便于同学B接入）
-- ✅ 符合课程要求（多文法多测试）
-
-**总计时间：15分钟**
-
----
-
-## 依赖项
-
-- Python 3.7+
-- 标准库: `dataclasses`, `collections`, `typing`, `json`
-
-无需安装第三方库！
-
----
-
-## 许可证
-
-本项目为教学项目，仅供学习使用。
-
----
-
-
-## 致谢
-
-感谢《编译原理》课程的理论基础，以及Aho、Ullman等前辈的经典教材《编译原理》(龙书)的指导。
-
----
-
-**祝答辩顺利！** 🎉
+**项目状态**：✅ 完成  
+**最后更新**：2025年12月

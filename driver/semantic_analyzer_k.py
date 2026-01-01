@@ -98,10 +98,6 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             return self.handle_factor(production, symbols)
         elif left == 'B':
             return  self.handle_boolean(production, symbols)
-        elif left == 'type':
-            return self.handle_type(production, symbols)
-        elif left == 'relop':
-            return self.handle_relop(production, symbols)
         else:
             print(f"[错误] 无效的产生式左部：{left}")
             return None
@@ -115,25 +111,25 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             return None
 
     def handle_statement(self, production: Production, symbols: List[Symbol]) -> Any:
-        prod_str = str(Production)
+        prod_str = str(production)
 
         #if len(symbols) == 3 and str(symbols[0]) == '{' and str(symbols[2]) == '}':
         #    self.block_level += 1
         #    print(f"[语义操作] 进入复合语句块，层级：{self.block_level}")
 
-        if "type id" in prod_str: # S -> type id ;
-            type_sym = symbols[0]
+        if ("int id" in prod_str or "bool id" in prod_str): # S -> int id ; | S -> bool id ;
+            type_token = symbols[0]
             id_sym = symbols[1]
 
-            var_type = type_sym.value
-            var_name = id_sym.value
+            var_type = str(type_token.value)  # 'int' 或 'bool'
+            var_name = str(id_sym.value)
 
             if var_name in self.symbol_table:
-                print(f"[语义错误]变量'{var_name}重复声明'")
+                print(f"[语义错误] 变量 '{var_name}' 重复声明")
                 return None
 
             self.add_symbol(var_name, {"type": var_type, "initialized": False})
-            print(f"[语义]声明变量：{var_name} : {var_type}")
+            print(f"[语义] 声明变量: {var_name} : {var_type}")
             return None
 
         elif ":=" in prod_str: # S -> id := E ;
@@ -148,6 +144,11 @@ class MySemanticAnalyzer(SemanticAnalyzer):
 
             # 获取变量类型
             var_info = self.symbol_table[var_name]
+
+            # 检查表达式是否有属性
+            if not expr_attr or "type" not in expr_attr:
+                print(f"[语义错误] 表达式属性缺失")
+                return None
 
             # 检查类型匹配
             if var_info["type"] != expr_attr["type"]:
@@ -221,28 +222,33 @@ class MySemanticAnalyzer(SemanticAnalyzer):
         """处理while语句: S → while (B) do S"""
         bool_attr = symbols[2].attributes  # B的综合属性
 
+        if not bool_attr:
+            print(f"[语义错误] while语句中布尔表达式属性缺失")
+            return None
+
         # 生成标签
-        cond_label = self.new_label()
+        begin_label = self.new_label()
         body_label = self.new_label()
         end_label = self.new_label()
 
         # 保存标签信息，供break/continue使用
         self.while_stack.append({
-            "cond_label": cond_label,
+            "cond_label": begin_label,
             "end_label": end_label
         })
 
         # 生成代码
-        self.emit(f"LABEL {cond_label}:")
-        self.emit(f"if {bool_attr['temp']} goto {body_label}")
-        self.emit(f"goto {end_label}")
-
+        self.emit(f"LABEL {begin_label}:")
+        # 回填truelist到循环体开始
+        self.backpatch(bool_attr.get("truelist", []), body_label)
         self.emit(f"LABEL {body_label}:")
-
-        self.emit(f"goto {cond_label}")
+        # 循环体结束后跳回条件判断
+        self.emit(f"goto {begin_label}")
+        # falselist跳到循环结束
         self.emit(f"LABEL {end_label}:")
+        self.backpatch(bool_attr.get("falselist", []), end_label)
 
-        print(f"[语义] 生成while语句，标签: {cond_label}, {body_label}, {end_label}")
+        print(f"[语义] 生成while语句，标签: {begin_label}, {body_label}, {end_label}")
         return None
 
     def handle_expression(self, production: Production, symbols: List[Symbol]) -> Any:
@@ -256,7 +262,13 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             left_attr = symbols[0].attributes
             op = symbols[1].value
             right_attr = symbols[2].attributes
-
+            # 检查属性是否存在
+            if not left_attr or "type" not in left_attr:
+                print(f"[语义错误] 左操作数属性缺失")
+                return {"type": "error", "value": None}
+            if not right_attr or "type" not in right_attr:
+                print(f"[语义错误] 右操作数属性缺失")
+                return {"type": "error", "value": None}
             # 检查类型
             if left_attr["type"] != "int" or right_attr["type"] != "int":
                 print(f"[语义错误] 算术运算要求int类型，得到 {left_attr['type']} {op} {right_attr['type']}")
@@ -294,7 +306,13 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             left_attr = symbols[0].attributes
             op = symbols[1].value
             right_attr = symbols[2].attributes
-
+            # 检查属性是否存在
+            if not left_attr or "type" not in left_attr:
+                print(f"[语义错误] 左操作数属性缺失")
+                return {"type": "error", "value": None}
+            if not right_attr or "type" not in right_attr:
+                print(f"[语义错误] 右操作数属性缺失")
+                return {"type": "error", "value": None}
             # 检查类型
             if left_attr["type"] != "int" or right_attr["type"] != "int":
                 print(f"[语义错误] 算术运算要求int类型，得到 {left_attr['type']} {op} {right_attr['type']}")
@@ -324,29 +342,30 @@ class MySemanticAnalyzer(SemanticAnalyzer):
 
     def handle_factor(self, production: Production, symbols: List[Symbol]) -> Any:
         """处理因子: F → (E) | id | num"""
-        if len(symbols) == 3 and str(symbols[0]) == '(':  # F → (E)
+        if len(symbols) == 3 and str(symbols[0].name) == '(':  # F → (E)
             return symbols[1].attributes
 
         elif len(symbols) == 1:
             sym = symbols[0]
-            sym_str = str(sym)
+            sym_name = str(sym.name)  # token类型：'num', 'id', 'true', 'false'
+            sym_value = sym.value      # token值
 
-            if sym_str.isdigit():  # 数字
+            if sym_name == "num":  # 数字
                 return {
                     "type": "int",
-                    "value": int(sym_str),
+                    "value": sym_value,
                     "temp": None
                 }
 
-            elif sym_str in ["true", "false"]:  # 布尔常量
+            elif sym_name in ["true", "false"]:  # 布尔常量
                 return {
                     "type": "bool",
-                    "value": sym_str == "true",
+                    "value": sym_name == "true",
                     "temp": None
                 }
 
-            else:  # 标识符
-                var_name = sym_str
+            elif sym_name == "id":  # 标识符
+                var_name = str(sym_value)
 
                 # 检查变量是否声明
                 if var_name not in self.symbol_table:
@@ -370,28 +389,34 @@ class MySemanticAnalyzer(SemanticAnalyzer):
         """处理布尔表达式 - 生成回填列表"""
         prod_str = str(production)
 
-        if "relop" in prod_str:  # B → E1 relop E2
-            # 生成条件跳转代码
-            E1_attr = symbols[0].attributes
-            relop_attr = symbols[1].attributes
-            E2_attr = symbols[2].attributes
+        # B -> E relop E (relop = ==, !=, <, >, <=, >=)
+        if len(symbols) == 3 and symbols[0].attributes and symbols[2].attributes:
+            if symbols[0].attributes.get("type") == "int" and symbols[2].attributes.get("type") == "int":
+                # 这是关系比较表达式 B -> E relop E
+                E1_attr = symbols[0].attributes
+                relop = str(symbols[1].value)  # 直接使用运算符符号
+                E2_attr = symbols[2].attributes
 
-            # 生成条件跳转指令
-            code = f"if {E1_attr.get('temp', E1_attr.get('value'))} {relop_attr['op']} {E2_attr.get('temp', E2_attr.get('value'))} goto L"
+                # 获取操作数（优先使用temp，如果没有则使用value）
+                left_val = E1_attr.get('temp') if E1_attr.get('temp') else E1_attr.get('value')
+                right_val = E2_attr.get('temp') if E2_attr.get('temp') else E2_attr.get('value')
 
-            # 生成跳转为真的指令（地址待回填）
-            truelist = self.make_list(self.emit_with_backpatch(code))
+                # 生成条件跳转指令
+                code = f"if {left_val} {relop} {right_val} goto L"
 
-            # 生成跳转为假的指令（无条件跳转，地址待回填）
-            falselist = self.make_list(self.emit_with_backpatch("goto L"))
+                # 生成跳转为真的指令（地址待回填）
+                truelist = self.make_list(self.emit_with_backpatch(code))
 
-            return {
-                "type": "bool",
-                "truelist": truelist,
-                "falselist": falselist
-            }
+                # 生成跳转为假的指令（无条件跳转，地址待回填）
+                falselist = self.make_list(self.emit_with_backpatch("goto L"))
 
-        elif symbols[0].value in ['true', 'false']:  # B → true | false
+                return {
+                    "type": "bool",
+                    "truelist": truelist,
+                    "falselist": falselist
+                }
+
+        if symbols[0].name in ['true', 'false']:  # B → true | false
             value = symbols[0].value
 
             if value == 'true':
@@ -409,7 +434,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
                     "falselist": self.make_list(self.emit_with_backpatch("goto L"))
                 }
 
-        elif symbols[0].value == '!':  # B → ! B1
+        elif len(symbols) == 2 and symbols[0].name == '!':  # B → ! B1
             B1_attr = symbols[1].attributes
             # 交换truelist和falselist
             return {
@@ -418,7 +443,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
                 "falselist": B1_attr.get("truelist", [])
             }
 
-        elif symbols[1].value in ['&&', '||']:  # B → B1 && B2 | B1 || B2
+        elif len(symbols) == 3 and symbols[1].name in ['&&', '||']:  # B → B1 && B2 | B1 || B2
             B1_attr = symbols[0].attributes
             op = symbols[1].value
             B2_attr = symbols[2].attributes
@@ -462,5 +487,5 @@ class MySemanticAnalyzer(SemanticAnalyzer):
 
     def handle_relop(self, production: Production, symbols: List[Symbol]) -> Any:
         """处理关系操作符: relop → == | != | < | > | <= | >="""
-        op_str = str(symbols[0])
+        op_str = str(symbols[0].value)
         return {"op": op_str}

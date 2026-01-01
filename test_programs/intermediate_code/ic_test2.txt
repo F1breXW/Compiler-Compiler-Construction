@@ -1,0 +1,2 @@
+result := a + b * c ;
+sum := result - d / e ;

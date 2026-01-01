@@ -1,0 +1,23 @@
+  1: x := 5
+  2: y := 10
+  3: if x > 0 goto L1
+  4: goto L
+  5: if y < 20 goto L2
+  6: goto L
+  7: LABEL L1:
+  8: t1 := x + y
+  9: result := t1
+ 10: LABEL L2
+ 11: if x < 0 goto L4
+ 12: goto L3
+ 13: if y > 15 goto L4
+ 14: goto L
+ 15: LABEL L3:
+ 16: y := 0
+ 17: t2 := y + 1
+ 18: y := t2
+ 19: goto L5
+ 20: LABEL L4:
+ 21: goto L6
+ 22: LABEL L5:
+ 23: LABEL L6

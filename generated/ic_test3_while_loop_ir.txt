@@ -1,0 +1,13 @@
+  1: n := 10
+  2: sum := 0
+  3: i := 1
+  4: if i <= n goto L2
+  5: goto L3
+  6: t1 := sum + i
+  7: sum := t1
+  8: t2 := i + 1
+  9: i := t2
+ 10: LABEL L1:
+ 11: LABEL L2:
+ 12: goto L1
+ 13: LABEL L3:

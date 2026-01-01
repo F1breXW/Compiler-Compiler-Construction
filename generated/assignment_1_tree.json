@@ -1,0 +1,65 @@
+{
+  "symbol": "S",
+  "value": null,
+  "is_terminal": false,
+  "production": "S -> id := E",
+  "children": [
+    {
+      "symbol": "id",
+      "value": "x",
+      "is_terminal": true
+    },
+    {
+      "symbol": ":=",
+      "value": ":=",
+      "is_terminal": true
+    },
+    {
+      "symbol": "E",
+      "value": null,
+      "is_terminal": false,
+      "production": "E -> E + T",
+      "children": [
+        {
+          "symbol": "E",
+          "value": null,
+          "is_terminal": false,
+          "production": "E -> T",
+          "children": [
+            {
+              "symbol": "T",
+              "value": null,
+              "is_terminal": false,
+              "production": "T -> id",
+              "children": [
+                {
+                  "symbol": "id",
+                  "value": "id",
+                  "is_terminal": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "symbol": "+",
+          "value": "+",
+          "is_terminal": true
+        },
+        {
+          "symbol": "T",
+          "value": null,
+          "is_terminal": false,
+          "production": "T -> id",
+          "children": [
+            {
+              "symbol": "id",
+              "value": "id",
+              "is_terminal": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

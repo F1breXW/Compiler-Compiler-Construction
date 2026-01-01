@@ -1,0 +1,42 @@
+{
+  "name": "简化命令式语言",
+  "description": "用于中间代码生成演示的简化语言（支持算术表达式和赋值）",
+  "lexical_rules": [
+    {"pattern": ":=", "token": ":="},
+    {"pattern": "\\+", "token": "+"},
+    {"pattern": "-", "token": "-"},
+    {"pattern": "\\*", "token": "*"},
+    {"pattern": "/", "token": "/"},
+    {"pattern": "\\(", "token": "("},
+    {"pattern": "\\)", "token": ")"},
+    {"pattern": ";", "token": ";"},
+    {"pattern": "id", "token": "id"},
+    {"pattern": "num", "token": "num"}
+  ],
+  "grammar_rules": [
+    "P -> S P",
+    "P -> S",
+    "S -> id := E ;",
+    "E -> E + T",
+    "E -> E - T",
+    "E -> T",
+    "T -> T * F",
+    "T -> T / F",
+    "T -> F",
+    "F -> ( E )",
+    "F -> id",
+    "F -> num"
+  ],
+  "test_cases": [
+    {
+      "description": "简单赋值",
+      "input": "x := 10 ;",
+      "expected": "legal"
+    },
+    {
+      "description": "算术表达式",
+      "input": "x := 10 + 5 * 2 ;",
+      "expected": "legal"
+    }
+  ]
+}

@@ -172,7 +172,15 @@ class LRParser:
         
         next_state = self.goto_table[goto_key]
         self.state_stack.append(next_state)
-        self.symbol_stack.append(Symbol(production.left, semantic_value))
+        
+        # 创建归约后的符号
+        # 如果semantic_value是字典（语义属性），则设置为attributes
+        if isinstance(semantic_value, dict):
+            new_symbol = Symbol(production.left, None, semantic_value)
+        else:
+            new_symbol = Symbol(production.left, semantic_value)
+        
+        self.symbol_stack.append(new_symbol)
         
         print(f"  GOTO 状态{next_state}")
         

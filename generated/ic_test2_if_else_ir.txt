@@ -1,0 +1,17 @@
+  1: x := 5
+  2: max := 10
+  3: if x < max goto L1
+  4: goto L
+  5: t1 := x + 1
+  6: x := t1
+  7: LABEL L1
+  8: if x > 0 goto L2
+  9: goto L
+ 10: t2 := x * 2
+ 11: x := t2
+ 12: x := 0
+ 13: goto L3
+ 14: LABEL L2:
+ 15: goto L4
+ 16: LABEL L3:
+ 17: LABEL L4
