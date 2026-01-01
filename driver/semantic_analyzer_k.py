@@ -47,13 +47,18 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             return
         for addr in patch_list:
             if addr < len(self.intermediate_code):
-                code = self.intermediate_code[addr]
-                if code.startswith("if ") and " goto" in code:
+                code = None
+                for key, value in list(self.intermediate_code.items()):
+                    if value == addr:
+                        code = key
+                if code is not None and code.startswith("if ") and " goto" in code:
                     parts = code.split(" goto ")
                     if len(parts)==2:
-                        self.intermediate_code[addr] = f"{parts[0]} goto {label}"
+                        del self.intermediate_code[code]
+                        self.intermediate_code[f"{parts[0]} goto {label}"] = addr
                 elif code.startswith("goto "):
-                    self.intermediate_code[addr] = f"goto {label}"
+                    del self.intermediate_code[code]
+                    self.intermediate_code[f"goto {label}"] = addr
 
     def semantic_action(self, production, symbols):
         """
@@ -84,7 +89,6 @@ class MySemanticAnalyzer(SemanticAnalyzer):
         type -> int | bool
         """
         prod_name = str(production)
-        print(f"[语义动作]处理产生式：{prod_name}")
         left = production.left
         if left == 'P':
             return self.handle_program(production, symbols)
@@ -109,37 +113,36 @@ class MySemanticAnalyzer(SemanticAnalyzer):
     def handle_program(self, production: Production, symbols: List[Symbol]) -> Any:
         if len(symbols) == 2: # P -> S P
             return None
-        elif (len(symbols) == 0) or symbols[0] == 'ε': # P -> ε
-            if self.block_level > 0:
-                print(f"程序结束，但仍有{self.block_level}给未关闭的复合语句块")
-            return None
 
     def handle_statement(self, production: Production, symbols: List[Symbol]) -> Any:
-        prod_str = str(Production)
+        prod_str = str(production)
 
         #if len(symbols) == 3 and str(symbols[0]) == '{' and str(symbols[2]) == '}':
         #    self.block_level += 1
         #    print(f"[语义操作] 进入复合语句块，层级：{self.block_level}")
+        if len(symbols) == 2: # S -> S S
 
-        if "type id" in prod_str: # S -> type id ;
-            type_sym = symbols[0]
-            id_sym = symbols[1]
+            if "type id" in prod_str: # S -> type id ;
+                type_sym = symbols[0]
+                id_sym = symbols[1]
 
-            var_type = type_sym.value
-            var_name = id_sym.value
+                var_type = type_sym.value
+                var_name = id_sym.value
 
-            if var_name in self.symbol_table:
-                print(f"[语义错误]变量'{var_name}重复声明'")
-                return None
+                if var_name in self.symbol_table:
+                    print(f"[语义错误]变量'{var_name}重复声明'")
+                    return None
 
-            self.add_symbol(var_name, {"type": var_type, "initialized": False})
-            print(f"[语义]声明变量：{var_name} : {var_type}")
+                self.add_symbol(var_name, {"type": var_type, "initialized": False})
+                print(f"      [语义]声明变量：{var_name} : {var_type}")
+                return var_name
+
             return None
 
-        elif ":=" in prod_str: # S -> id := E ;
+        if ":=" in prod_str: # S -> id := E ;
             # 赋值语句
             var_name = symbols[0].value
-            expr_attr = symbols[2].attributes  # E的综合属性
+            expr_attr = symbols[2].value  # E的综合属性
 
             # 检查变量是否声明
             if var_name not in self.symbol_table:
@@ -164,8 +167,8 @@ class MySemanticAnalyzer(SemanticAnalyzer):
 
             # 标记变量已初始化
             var_info["initialized"] = True
-            print(f"[语义] 赋值: {var_name} := {expr_attr.get('value', expr_attr.get('temp', '?'))}")
-            return None
+            print(f"      [语义] 赋值: {var_name} := {expr_attr.get('value', expr_attr.get('temp', '?'))}")
+            return expr_attr #.get("value")
 
         elif "if" in prod_str:
             # if语句处理
@@ -183,7 +186,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
 
         else:  # S → E ;
             # 表达式语句
-            expr_attr = symbols[0].attributes
+            expr_attr = symbols[0].value
             if expr_attr and "temp" in expr_attr:
                 # 表达式有结果，生成中间代码
                 temp_var = expr_attr["temp"]
@@ -250,12 +253,12 @@ class MySemanticAnalyzer(SemanticAnalyzer):
         prod_str = str(production)
 
         if len(symbols) == 1:  # E → T
-            return symbols[0].attributes
+            return symbols[0].value
 
         elif len(symbols) == 3:  # E → E op T
-            left_attr = symbols[0].attributes
+            left_attr = symbols[0].value
             op = symbols[1].value
-            right_attr = symbols[2].attributes
+            right_attr = symbols[2].value
 
             # 检查类型
             if left_attr["type"] != "int" or right_attr["type"] != "int":
@@ -288,12 +291,12 @@ class MySemanticAnalyzer(SemanticAnalyzer):
         prod_str = str(production)
 
         if len(symbols) == 1:  # T → F
-            return symbols[0].attributes
+            return symbols[0].value
 
         elif len(symbols) == 3:  # T → T op F
-            left_attr = symbols[0].attributes
+            left_attr = symbols[0].value
             op = symbols[1].value
-            right_attr = symbols[2].attributes
+            right_attr = symbols[2].value
 
             # 检查类型
             if left_attr["type"] != "int" or right_attr["type"] != "int":
@@ -312,12 +315,12 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             # 记录临时变量类型
             self.temp_vars[temp_var] = "int"
 
-            print(f"[语义] 生成项运算: {temp_var} = {left_val} {op} {right_val}")
+            print(f"      [语义] 生成项运算: {temp_var} = {left_val} {op} {right_val}")
 
             return {
                 "type": "int",
                 "temp": temp_var,
-                "value": None
+                "value": f"{left_val} {op} {right_val}"
             }
 
         return {"type": "error", "value": None}
@@ -325,11 +328,11 @@ class MySemanticAnalyzer(SemanticAnalyzer):
     def handle_factor(self, production: Production, symbols: List[Symbol]) -> Any:
         """处理因子: F → (E) | id | num"""
         if len(symbols) == 3 and str(symbols[0]) == '(':  # F → (E)
-            return symbols[1].attributes
+            return symbols[1].value
 
         elif len(symbols) == 1:
             sym = symbols[0]
-            sym_str = str(sym)
+            sym_str = sym.value
 
             if sym_str.isdigit():  # 数字
                 return {

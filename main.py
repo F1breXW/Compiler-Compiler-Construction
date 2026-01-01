@@ -2,7 +2,7 @@
 编译器-编译器演示程序
 满足课程要求：测试多个文法，每个文法测试多个程序体
 """
-
+from driver.semantic_analyzer_k import MySemanticAnalyzer
 from lexical import LexicalGenerator
 from syntax import Grammar, ParserGenerator
 from driver import LRParser, PL0SemanticAnalyzer
@@ -81,7 +81,11 @@ def create_expression_grammar():
     grammar = Grammar()
     
     # 起始符号
+    grammar.add_production("P", ["P","S"])
+    grammar.add_production("P", ["S"])
     grammar.add_production("S", ["E"])
+    grammar.add_production("S", ["id", ":=", "E"])
+    grammar.add_production("S", ["type", "id"])
     
     # 表达式规则
     grammar.add_production("E", ["E", "+", "T"])
@@ -121,14 +125,26 @@ def test_expression_grammar():
     # 3. 测试程序1 - 合法输入
     print_section("测试1.1 - 合法程序: a + b * c")
     tokens1 = [
+        ('type', "int"),
         ('id', 'a'),
-        ('+', '+'),
+        ('type', "int"),
+        ('id', 'b'),
+        ('type', "int"),
+        ('id', 'c'),
+        ('id', 'b'),
+        (':=', ':='),
+        ('num', '1'),
+        ('id', 'c'),
+        (':=', ':='),
+        ('num', '1'),
+        ('id', 'a'),
+        (':=', ':='),
         ('id', 'b'),
         ('*', '*'),
-        ('id', 'c')
+        ('id', 'c'),
     ]
     
-    analyzer1 = PL0SemanticAnalyzer()
+    analyzer1 = MySemanticAnalyzer()
     parser1 = LRParser(generator.grammar, action_table, goto_table,
                       semantic_handler=analyzer1.semantic_action)
     

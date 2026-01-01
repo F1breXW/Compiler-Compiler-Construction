@@ -28,7 +28,7 @@ class SemanticAnalyzer:
         self.temp_counter = 0
         
         # 三地址码序列
-        self.intermediate_code: List[str] = []
+        self.intermediate_code: Dict[str, int] = {}
     
     def new_temp(self) -> str:
         """
@@ -46,7 +46,7 @@ class SemanticAnalyzer:
         参数:
             code: 三地址码语句
         """
-        self.intermediate_code.append(code)
+        self.intermediate_code[code] = self.nextinstr
         self.nextinstr += 1
         print(f"      [生成代码] {code}")
     
@@ -85,7 +85,7 @@ class SemanticAnalyzer:
         # 默认实现: 什么都不做
         return None
     
-    def get_code(self) -> List[str]:
+    def get_code(self):
         """获取生成的中间代码"""
         return self.intermediate_code
     
