@@ -23,6 +23,7 @@ class DFA:
     transitions: Dict[Tuple[int, str], int] = field(default_factory=dict)
     start_state: int = 0
     accept_states: Set[int] = field(default_factory=set)
+    accept_tags: Dict[int, str] = field(default_factory=dict)
     
     def get_transition_table(self) -> Dict:
         """

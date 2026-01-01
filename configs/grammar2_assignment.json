@@ -1,0 +1,56 @@
+{
+  "name": "赋值语句文法",
+  "description": "简单的赋值语句文法，支持变量赋值和算术表达式",
+  "lexical_rules": [
+    {
+      "pattern": "\\+",
+      "token": "+",
+      "description": "加号"
+    },
+    {
+      "pattern": "-",
+      "token": "-",
+      "description": "减号"
+    },
+    {
+      "pattern": ":=",
+      "token": ":=",
+      "description": "赋值运算符"
+    },
+    {
+      "pattern": "id",
+      "token": "id",
+      "description": "标识符"
+    },
+    {
+      "pattern": "num",
+      "token": "num",
+      "description": "数字"
+    }
+  ],
+  "grammar_rules": [
+    "S -> id := E",
+    "E -> E + T",
+    "E -> E - T",
+    "E -> T",
+    "T -> id",
+    "T -> num"
+  ],
+  "test_cases": [
+    {
+      "input": "x := a + b",
+      "expected": "legal",
+      "description": "简单赋值语句"
+    },
+    {
+      "input": "result := 100 - x",
+      "expected": "legal",
+      "description": "赋值语句包含数字和减法"
+    },
+    {
+      "input": "x a + b",
+      "expected": "illegal",
+      "description": "缺少赋值运算符"
+    }
+  ]
+}

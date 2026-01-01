@@ -132,6 +132,34 @@ class ThompsonConstructor:
         nfa.add_transition(new_start, None, new_accept)
         
         return nfa
+
+    def construct_plus(self, nfa1: NFA) -> NFA:
+        """
+        构造正闭包的NFA (A+)
+        类似A*，但不允许匹配0次（没有从start到accept的直接跳过边）
+        """
+        nfa = NFA()
+        new_start = self.new_state()
+        new_accept = self.new_state()
+        new_accept.is_accepting = True
+        
+        nfa.states = nfa1.states | {new_start, new_accept}
+        nfa.alphabet = nfa1.alphabet
+        nfa.transitions = nfa1.transitions.copy()
+        nfa.start_state = new_start
+        nfa.accept_states = {new_accept}
+        
+        # epsilon边: new_start -> nfa1.start
+        nfa.add_transition(new_start, None, nfa1.start_state)
+        
+        # epsilon边: nfa1的接受状态 -> new_accept
+        for accept in nfa1.accept_states:
+            accept.is_accepting = False
+            nfa.add_transition(accept, None, new_accept)
+            # epsilon回边: accept -> nfa1.start (实现循环)
+            nfa.add_transition(accept, None, nfa1.start_state)
+            
+        return nfa
     
     def construct_simple(self, regex: str, token_tag: str) -> NFA:
         """
@@ -160,4 +188,71 @@ class ThompsonConstructor:
         current.tag = token_tag
         nfa.accept_states.add(current)
         
+        return nfa
+
+    def construct_range(self, start_char: str, end_char: str) -> NFA:
+        """
+        构造字符范围的NFA (例如 [a-z])
+        
+        参数:
+            start_char: 起始字符
+            end_char: 结束字符
+        返回: NFA
+        """
+        nfa = NFA()
+        start = self.new_state()
+        accept = self.new_state()
+        accept.is_accepting = True
+        
+        nfa.start_state = start
+        nfa.accept_states.add(accept)
+        
+        # 添加范围内所有字符的转换
+        for char_code in range(ord(start_char), ord(end_char) + 1):
+            char = chr(char_code)
+            nfa.add_transition(start, char, accept)
+            
+        return nfa
+    
+    def construct_identifier(self, tag: str = "id") -> NFA:
+        """
+        构造标识符的NFA: [a-zA-Z][a-zA-Z0-9]*
+        """
+        # 1. 字母 [a-zA-Z]
+        lower = self.construct_range('a', 'z')
+        upper = self.construct_range('A', 'Z')
+        letter = self.construct_union(lower, upper)
+        
+        # 2. 数字 [0-9]
+        digit = self.construct_range('0', '9')
+        
+        # 3. 字母或数字 [a-zA-Z0-9]
+        letter_or_digit = self.construct_union(letter, digit)
+        
+        # 4. (字母或数字)*
+        suffix = self.construct_star(letter_or_digit)
+        
+        # 5. 字母 (字母或数字)*
+        nfa = self.construct_concat(letter, suffix)
+        
+        # 设置标签
+        for state in nfa.accept_states:
+            state.tag = tag
+            
+        return nfa
+        
+    def construct_number(self, tag: str = "num") -> NFA:
+        """
+        构造数字的NFA: [0-9]+
+        即 [0-9][0-9]*
+        """
+        digit = self.construct_range('0', '9')
+        digit_star = self.construct_star(digit)
+        
+        nfa = self.construct_concat(digit, digit_star)
+        
+        # 设置标签
+        for state in nfa.accept_states:
+            state.tag = tag
+            
         return nfa

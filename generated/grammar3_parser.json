@@ -1,0 +1,70 @@
+{
+  "action_table": {
+    "(1, $)": {
+      "action": "accept",
+      "value": 0
+    },
+    "(5, $)": {
+      "action": "reduce",
+      "value": 1
+    },
+    "(6, $)": {
+      "action": "reduce",
+      "value": 8
+    },
+    "(7, $)": {
+      "action": "reduce",
+      "value": 6
+    },
+    "(8, $)": {
+      "action": "reduce",
+      "value": 7
+    },
+    "(9, $)": {
+      "action": "reduce",
+      "value": 5
+    },
+    "(13, $)": {
+      "action": "reduce",
+      "value": 3
+    },
+    "(14, $)": {
+      "action": "reduce",
+      "value": 2
+    },
+    "(15, $)": {
+      "action": "reduce",
+      "value": 4
+    }
+  },
+  "goto_table": {
+    "(0, TYPE)": 2,
+    "(0, S)": 1,
+    "(2, VAR)": 3,
+    "(3, ASSIGN)": 4,
+    "(4, E)": 5,
+    "(4, VAR)": 7,
+    "(4, FLOAT)": 6,
+    "(4, T)": 9,
+    "(4, INTEGER)": 8,
+    "(5, BITAND)": 10,
+    "(5, BITOR)": 12,
+    "(5, PLUS)": 11,
+    "(10, VAR)": 7,
+    "(10, T)": 13,
+    "(10, FLOAT)": 6,
+    "(10, INTEGER)": 8,
+    "(11, VAR)": 7,
+    "(11, T)": 14,
+    "(11, FLOAT)": 6,
+    "(11, INTEGER)": 8,
+    "(12, T)": 15,
+    "(12, VAR)": 7,
+    "(12, FLOAT)": 6,
+    "(12, INTEGER)": 8
+  },
+  "info": {
+    "action_entries": 9,
+    "goto_entries": 24
+  }
+}

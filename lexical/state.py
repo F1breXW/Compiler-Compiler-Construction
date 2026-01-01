@@ -19,6 +19,7 @@ class State:
     id: int
     is_accepting: bool = False
     tag: Optional[str] = None
+    priority: int = float('inf')
     
     def __hash__(self):
         return hash(self.id)

@@ -1,0 +1,339 @@
+{
+  "action_table": {
+    "(0, ()": {
+      "action": "shift",
+      "value": 6
+    },
+    "(0, num)": {
+      "action": "shift",
+      "value": 3
+    },
+    "(0, id)": {
+      "action": "shift",
+      "value": 2
+    },
+    "(1, +)": {
+      "action": "shift",
+      "value": 8
+    },
+    "(1, -)": {
+      "action": "shift",
+      "value": 9
+    },
+    "(1, $)": {
+      "action": "reduce",
+      "value": 1
+    },
+    "(2, /)": {
+      "action": "reduce",
+      "value": 9
+    },
+    "(2, $)": {
+      "action": "reduce",
+      "value": 9
+    },
+    "(2, -)": {
+      "action": "reduce",
+      "value": 9
+    },
+    "(2, ))": {
+      "action": "reduce",
+      "value": 9
+    },
+    "(2, +)": {
+      "action": "reduce",
+      "value": 9
+    },
+    "(2, *)": {
+      "action": "reduce",
+      "value": 9
+    },
+    "(3, +)": {
+      "action": "reduce",
+      "value": 10
+    },
+    "(3, -)": {
+      "action": "reduce",
+      "value": 10
+    },
+    "(3, *)": {
+      "action": "reduce",
+      "value": 10
+    },
+    "(3, /)": {
+      "action": "reduce",
+      "value": 10
+    },
+    "(3, $)": {
+      "action": "reduce",
+      "value": 10
+    },
+    "(3, ))": {
+      "action": "reduce",
+      "value": 10
+    },
+    "(4, ))": {
+      "action": "reduce",
+      "value": 7
+    },
+    "(4, -)": {
+      "action": "reduce",
+      "value": 7
+    },
+    "(4, $)": {
+      "action": "reduce",
+      "value": 7
+    },
+    "(4, +)": {
+      "action": "reduce",
+      "value": 7
+    },
+    "(4, *)": {
+      "action": "reduce",
+      "value": 7
+    },
+    "(4, /)": {
+      "action": "reduce",
+      "value": 7
+    },
+    "(5, *)": {
+      "action": "shift",
+      "value": 10
+    },
+    "(5, /)": {
+      "action": "shift",
+      "value": 11
+    },
+    "(5, $)": {
+      "action": "reduce",
+      "value": 4
+    },
+    "(5, -)": {
+      "action": "reduce",
+      "value": 4
+    },
+    "(5, +)": {
+      "action": "reduce",
+      "value": 4
+    },
+    "(5, ))": {
+      "action": "reduce",
+      "value": 4
+    },
+    "(6, ()": {
+      "action": "shift",
+      "value": 6
+    },
+    "(6, num)": {
+      "action": "shift",
+      "value": 3
+    },
+    "(6, id)": {
+      "action": "shift",
+      "value": 2
+    },
+    "(7, $)": {
+      "action": "accept",
+      "value": 0
+    },
+    "(8, ()": {
+      "action": "shift",
+      "value": 6
+    },
+    "(8, num)": {
+      "action": "shift",
+      "value": 3
+    },
+    "(8, id)": {
+      "action": "shift",
+      "value": 2
+    },
+    "(9, ()": {
+      "action": "shift",
+      "value": 6
+    },
+    "(9, num)": {
+      "action": "shift",
+      "value": 3
+    },
+    "(9, id)": {
+      "action": "shift",
+      "value": 2
+    },
+    "(10, ()": {
+      "action": "shift",
+      "value": 6
+    },
+    "(10, num)": {
+      "action": "shift",
+      "value": 3
+    },
+    "(10, id)": {
+      "action": "shift",
+      "value": 2
+    },
+    "(11, ()": {
+      "action": "shift",
+      "value": 6
+    },
+    "(11, num)": {
+      "action": "shift",
+      "value": 3
+    },
+    "(11, id)": {
+      "action": "shift",
+      "value": 2
+    },
+    "(12, -)": {
+      "action": "shift",
+      "value": 9
+    },
+    "(12, +)": {
+      "action": "shift",
+      "value": 8
+    },
+    "(12, ))": {
+      "action": "shift",
+      "value": 17
+    },
+    "(13, *)": {
+      "action": "shift",
+      "value": 10
+    },
+    "(13, /)": {
+      "action": "shift",
+      "value": 11
+    },
+    "(13, $)": {
+      "action": "reduce",
+      "value": 2
+    },
+    "(13, -)": {
+      "action": "reduce",
+      "value": 2
+    },
+    "(13, ))": {
+      "action": "reduce",
+      "value": 2
+    },
+    "(13, +)": {
+      "action": "reduce",
+      "value": 2
+    },
+    "(14, *)": {
+      "action": "shift",
+      "value": 10
+    },
+    "(14, /)": {
+      "action": "shift",
+      "value": 11
+    },
+    "(14, $)": {
+      "action": "reduce",
+      "value": 3
+    },
+    "(14, -)": {
+      "action": "reduce",
+      "value": 3
+    },
+    "(14, +)": {
+      "action": "reduce",
+      "value": 3
+    },
+    "(14, ))": {
+      "action": "reduce",
+      "value": 3
+    },
+    "(15, -)": {
+      "action": "reduce",
+      "value": 5
+    },
+    "(15, +)": {
+      "action": "reduce",
+      "value": 5
+    },
+    "(15, *)": {
+      "action": "reduce",
+      "value": 5
+    },
+    "(15, /)": {
+      "action": "reduce",
+      "value": 5
+    },
+    "(15, ))": {
+      "action": "reduce",
+      "value": 5
+    },
+    "(15, $)": {
+      "action": "reduce",
+      "value": 5
+    },
+    "(16, +)": {
+      "action": "reduce",
+      "value": 6
+    },
+    "(16, *)": {
+      "action": "reduce",
+      "value": 6
+    },
+    "(16, /)": {
+      "action": "reduce",
+      "value": 6
+    },
+    "(16, $)": {
+      "action": "reduce",
+      "value": 6
+    },
+    "(16, -)": {
+      "action": "reduce",
+      "value": 6
+    },
+    "(16, ))": {
+      "action": "reduce",
+      "value": 6
+    },
+    "(17, ))": {
+      "action": "reduce",
+      "value": 8
+    },
+    "(17, +)": {
+      "action": "reduce",
+      "value": 8
+    },
+    "(17, $)": {
+      "action": "reduce",
+      "value": 8
+    },
+    "(17, /)": {
+      "action": "reduce",
+      "value": 8
+    },
+    "(17, *)": {
+      "action": "reduce",
+      "value": 8
+    },
+    "(17, -)": {
+      "action": "reduce",
+      "value": 8
+    }
+  },
+  "goto_table": {
+    "(0, T)": 5,
+    "(0, E)": 1,
+    "(0, S)": 7,
+    "(0, F)": 4,
+    "(6, T)": 5,
+    "(6, F)": 4,
+    "(6, E)": 12,
+    "(8, T)": 13,
+    "(8, F)": 4,
+    "(9, T)": 14,
+    "(9, F)": 4,
+    "(10, F)": 15,
+    "(11, F)": 16
+  },
+  "info": {
+    "action_entries": 79,
+    "goto_entries": 13
+  }
+}

@@ -1,13 +1,25 @@
 """
-编译器-编译器演示程序
-满足课程要求：测试多个文法，每个文法测试多个程序体
+编译器-编译器演示程序（配置驱动版本）
+从JSON配置文件读取文法定义，自动生成词法分析器和语法分析器
+遵循开闭原则：对扩展开放（新增文法只需添加配置文件），对修改封闭
 """
 
-from lexical import LexicalGenerator
+from lexical import LexicalGenerator, Scanner
 from syntax import Grammar, ParserGenerator
 from driver import LRParser, PL0SemanticAnalyzer
-from utils import save_parsing_tables
-import json
+from utils import save_parsing_tables, save_json
+from utils.visualizer import GraphvizVisualizer
+from utils.config_loader import ConfigLoader, ConfigValidator, GrammarConfig
+import sys
+import os
+
+
+def pause():
+    """暂停程序，等待用户按回车键"""
+    try:
+        input("\n[按回车键继续...]")
+    except EOFError:
+        pass  # 在非交互模式下自动继续
 
 
 def print_header(title):
@@ -24,398 +36,260 @@ def print_section(title):
     print("-"*80)
 
 
-# ============================================================================
-# 第一部分：词法分析器自动生成测试
-# ============================================================================
-
-def test_lexical_generators():
+class CompilerGenerator:
     """
-    测试词法分析器的自动生成能力
-    要求：测试多个不同的词法规则
+    编译器生成器（Facade模式）
+    封装词法生成器和语法生成器的复杂性，提供简单统一的接口
     """
-    print_header("第一部分：词法分析器自动生成测试")
     
-    print("功能说明：")
-    print("  输入：正则表达式（词法规则）")
-    print("  输出：该词法的DFA转换表")
-    print("  测试：多个不同的词法规则\n")
-    
-    # 词法规则1：关键字 "begin"
-    print_section("测试1.1 - 关键字识别: begin")
-    generator1 = LexicalGenerator()
-    table1, accept1 = generator1.generate("begin", "KEYWORD_BEGIN")
-    print(f"[OK] 生成完成 - 状态数: {len(table1)}, 接受状态: {accept1}\n")
-    
-    # 词法规则2：关键字 "if"
-    print_section("测试1.2 - 关键字识别: if")
-    generator2 = LexicalGenerator()
-    table2, accept2 = generator2.generate("if", "KEYWORD_IF")
-    print(f"[OK] 生成完成 - 状态数: {len(table2)}, 接受状态: {accept2}\n")
-    
-    # 词法规则3：关键字 "while"
-    print_section("测试1.3 - 关键字识别: while")
-    generator3 = LexicalGenerator()
-    table3, accept3 = generator3.generate("while", "KEYWORD_WHILE")
-    print(f"[OK] 生成完成 - 状态数: {len(table3)}, 接受状态: {accept3}\n")
-    
-    print("="*80)
-    print("词法分析器测试总结：")
-    print(f"  [OK] 成功生成 3 个不同的词法分析器")
-    print(f"  [OK] 各词法分析器均能正确处理对应的词法规则")
-    print("="*80)
-
-
-# ============================================================================
-# 第二部分：语法分析器自动生成测试 - 文法1（算术表达式）
-# ============================================================================
-
-def create_expression_grammar():
-    """
-    文法1：算术表达式文法
-    S -> E
-    E -> E + T | E - T | T
-    T -> T * F | T / F | F
-    F -> ( E ) | id | num
-    """
-    print_section("文法1定义 - 算术表达式文法")
-    grammar = Grammar()
-    
-    # 起始符号
-    grammar.add_production("S", ["E"])
-    
-    # 表达式规则
-    grammar.add_production("E", ["E", "+", "T"])
-    grammar.add_production("E", ["E", "-", "T"])
-    grammar.add_production("E", ["T"])
-    
-    # 项规则
-    grammar.add_production("T", ["T", "*", "F"])
-    grammar.add_production("T", ["T", "/", "F"])
-    grammar.add_production("T", ["F"])
-    
-    # 因子规则
-    grammar.add_production("F", ["(", "E", ")"])
-    grammar.add_production("F", ["id"])
-    grammar.add_production("F", ["num"])
-    
-    print("产生式：")
-    for prod in grammar.productions:
-        print(f"  {prod}")
-    
-    return grammar
-
-
-def test_expression_grammar():
-    """测试文法1：算术表达式文法"""
-    print_header("第二部分：语法分析器自动生成测试 - 文法1")
-    
-    # 1. 创建文法
-    grammar = create_expression_grammar()
-    
-    # 2. 自动生成语法分析器
-    print_section("步骤1 - 自动生成LALR(1)分析表")
-    generator = ParserGenerator(grammar)
-    action_table, goto_table = generator.generate()
-    print(f"[OK] 生成完成 - ACTION表项: {len(action_table)}, GOTO表项: {len(goto_table)}")
-    
-    # 3. 测试程序1 - 合法输入
-    print_section("测试1.1 - 合法程序: a + b * c")
-    tokens1 = [
-        ('id', 'a'),
-        ('+', '+'),
-        ('id', 'b'),
-        ('*', '*'),
-        ('id', 'c')
-    ]
-    
-    analyzer1 = PL0SemanticAnalyzer()
-    parser1 = LRParser(generator.grammar, action_table, goto_table,
-                      semantic_handler=analyzer1.semantic_action)
-    
-    success1 = parser1.parse(tokens1)
-    
-    if success1:
-        print("\n[OK] 分析结果: 合法")
-        print("\n使用的产生式序列:")
-        for i, record in enumerate(parser1.parse_history, 1):
-            if record['action'] == 'reduce':
-                print(f"  {i}. {record['production']}")
+    def __init__(self):
+        self.lexical_generator = LexicalGenerator()
         
-        print("\n生成的中间代码:")
-        for i, code in enumerate(analyzer1.get_code(), 1):
-            print(f"  {i}: {code}")
-    else:
-        print("[FAIL] 分析失败")
-    
-    # 4. 测试程序2 - 合法输入（带括号）
-    print_section("测试1.2 - 合法程序: (a + b) * c")
-    tokens2 = [
-        ('(', '('),
-        ('id', 'a'),
-        ('+', '+'),
-        ('id', 'b'),
-        (')', ')'),
-        ('*', '*'),
-        ('id', 'c')
-    ]
-    
-    analyzer2 = PL0SemanticAnalyzer()
-    parser2 = LRParser(generator.grammar, action_table, goto_table,
-                      semantic_handler=analyzer2.semantic_action)
-    
-    success2 = parser2.parse(tokens2)
-    
-    if success2:
-        print("\n[OK] 分析结果: 合法")
-        print("\n使用的产生式序列:")
-        for i, record in enumerate(parser2.parse_history, 1):
-            if record['action'] == 'reduce':
-                print(f"  {i}. {record['production']}")
+    def generate_lexer(self, config: GrammarConfig):
+        """
+        根据配置生成词法分析器
         
-        print("\n生成的中间代码:")
-        for i, code in enumerate(analyzer2.get_code(), 1):
-            print(f"  {i}: {code}")
-    else:
-        print("[FAIL] 分析失败")
+        参数:
+            config: 文法配置
+        返回:
+            (transition_table, accepting_map, scanner)
+        """
+        print_section(f"步骤1 - 生成词法分析器: {config.name}")
+        print(f"文法描述: {config.description}")
+        print(f"词法规则数: {len(config.lexical_rules)}")
+        
+        # 显示规则
+        print("\n词法规则:")
+        for i, (pattern, token) in enumerate(config.lexical_rules, 1):
+            print(f"  {i:2d}. {pattern:20s} -> {token}")
+        
+        # 生成DFA
+        table, accepting_map = self.lexical_generator.build(config.lexical_rules)
+        
+        print(f"\n[OK] 词法分析器生成完成")
+        print(f"  - DFA状态数: {len(table)}")
+        print(f"  - 接受状态数: {len(accepting_map)}")
+        
+        # 创建Scanner
+        scanner = Scanner(table, accepting_map)
+        
+        return table, accepting_map, scanner
     
-    # 5. 测试程序3 - 非法输入
-    print_section("测试1.3 - 非法程序: a + + b")
-    tokens3 = [
-        ('id', 'a'),
-        ('+', '+'),
-        ('+', '+'),
-        ('id', 'b')
-    ]
+    def generate_parser(self, config: GrammarConfig):
+        """
+        根据配置生成语法分析器
+        
+        参数:
+            config: 文法配置
+        返回:
+            (action_table, goto_table, grammar)
+        """
+        print_section(f"步骤2 - 生成语法分析器: {config.name}")
+        
+        # 创建文法对象
+        grammar = Grammar()
+        
+        # 添加产生式
+        print("\n产生式:")
+        for i, rule_str in enumerate(config.grammar_rules, 1):
+            left, right = rule_str.split('->')
+            left = left.strip()
+            right = [s.strip() for s in right.strip().split()]
+            grammar.add_production(left, right)
+            print(f"  {i:2d}. {rule_str}")
+        
+        # 创建ParserGenerator（需要传入grammar）
+        parser_generator = ParserGenerator(grammar)
+        
+        # 生成LALR(1)分析表
+        print()
+        action_table, goto_table = parser_generator.generate()
+        
+        print(f"\n[OK] 语法分析器生成完成")
+        action_count = sum(len(v) if isinstance(v, dict) else 1 for v in action_table.values())
+        goto_count = sum(len(v) if isinstance(v, dict) else 1 for v in goto_table.values())
+        print(f"  - ACTION表项: {action_count}")
+        print(f"  - GOTO表项: {goto_count}")
+        
+        return action_table, goto_table, grammar
     
-    analyzer3 = PL0SemanticAnalyzer()
-    parser3 = LRParser(generator.grammar, action_table, goto_table,
-                      semantic_handler=analyzer3.semantic_action)
-    
-    success3 = parser3.parse(tokens3)
-    
-    if success3:
-        print("\n[OK] 分析结果: 合法")
-    else:
-        print("\n[EXPECTED] 分析结果: 非法（语法错误）")
-    
-    print("\n" + "="*80)
-    print("文法1测试总结：")
-    print(f"  [OK] 成功自动生成语法分析器")
-    print(f"  [OK] 测试了 3 个不同的程序（2个合法，1个非法）")
-    print(f"  [OK] 能正确判断程序合法性")
-    print(f"  [OK] 能输出产生式序列和中间代码")
-    print("="*80)
+    def export_visualizations(self, grammar_name: str):
+        """导出可视化文件"""
+        if self.lexical_generator.last_min_dfa:
+            filename = f"visualizations/{grammar_name}_dfa.dot"
+            os.makedirs("visualizations", exist_ok=True)
+            GraphvizVisualizer.export_dfa(
+                self.lexical_generator.last_min_dfa, 
+                filename, 
+                f"{grammar_name} - Minimized DFA"
+            )
+            print(f"  [可视化] 已生成 {filename}")
 
 
-# ============================================================================
-# 第三部分：语法分析器自动生成测试 - 文法2（赋值语句）
-# ============================================================================
-
-def create_assignment_grammar():
+def test_grammar(compiler: CompilerGenerator, config: GrammarConfig, grammar_index: int):
     """
-    文法2：赋值语句文法
-    S -> id := E
-    E -> E + T | E - T | T
-    T -> id | num
+    测试单个文法
+    
+    参数:
+        compiler: 编译器生成器
+        config: 文法配置
+        grammar_index: 文法编号（用于标题）
     """
-    print_section("文法2定义 - 赋值语句文法")
-    grammar = Grammar()
+    print_header(f"测试文法 #{grammar_index}: {config.name}")
     
-    # 赋值语句
-    grammar.add_production("S", ["id", ":=", "E"])
+    # 步骤1：生成词法分析器
+    table, accepting_map, scanner = compiler.generate_lexer(config)
     
-    # 表达式规则
-    grammar.add_production("E", ["E", "+", "T"])
-    grammar.add_production("E", ["E", "-", "T"])
-    grammar.add_production("E", ["T"])
+    # 步骤2：生成语法分析器
+    action_table, goto_table, grammar = compiler.generate_parser(config)
     
-    # 项规则
-    grammar.add_production("T", ["id"])
-    grammar.add_production("T", ["num"])
+    # 步骤3：导出可视化
+    print_section("步骤3 - 导出生成结果")
+    compiler.export_visualizations(config.name.replace(" ", "_"))
     
-    print("产生式：")
-    for prod in grammar.productions:
-        print(f"  {prod}")
+    # 导出分析表
+    output_file = f"generated/grammar{grammar_index}_parser.json"
+    os.makedirs("generated", exist_ok=True)
+    save_parsing_tables(action_table, goto_table, output_file)
+    print(f"  [分析表] 已保存至 {output_file}")
     
-    return grammar
-
-
-def test_assignment_grammar():
-    """测试文法2：赋值语句文法"""
-    print_header("第三部分：语法分析器自动生成测试 - 文法2")
+    pause()
     
-    # 1. 创建文法
-    grammar = create_assignment_grammar()
+    # 步骤4：测试用例
+    print_section(f"步骤4 - 运行测试用例 (共{len(config.test_cases)}个)")
     
-    # 2. 自动生成语法分析器
-    print_section("步骤1 - 自动生成LALR(1)分析表")
-    generator = ParserGenerator(grammar)
-    action_table, goto_table = generator.generate()
-    print(f"[OK] 生成完成 - ACTION表项: {len(action_table)}, GOTO表项: {len(goto_table)}")
-    
-    # 3. 测试程序1 - 合法输入
-    print_section("测试2.1 - 合法程序: x := a + b")
-    tokens1 = [
-        ('id', 'x'),
-        (':=', ':='),
-        ('id', 'a'),
-        ('+', '+'),
-        ('id', 'b')
-    ]
-    
-    analyzer1 = PL0SemanticAnalyzer()
-    parser1 = LRParser(generator.grammar, action_table, goto_table,
-                      semantic_handler=analyzer1.semantic_action)
-    
-    success1 = parser1.parse(tokens1)
-    
-    if success1:
-        print("\n[OK] 分析结果: 合法")
-        print("\n使用的产生式序列:")
-        for i, record in enumerate(parser1.parse_history, 1):
-            if record['action'] == 'reduce':
-                print(f"  {i}. {record['production']}")
+    for i, test_case in enumerate(config.test_cases, 1):
+        print_section(f"测试用例 {i}/{len(config.test_cases)}")
+        print(f"描述: {test_case.description}")
+        print(f"源代码: {test_case.input}")
+        print(f"预期结果: {test_case.expected}")
         
-        print("\n生成的中间代码:")
-        for i, code in enumerate(analyzer1.get_code(), 1):
-            print(f"  {i}: {code}")
-    else:
-        print("[FAIL] 分析失败")
-    
-    # 4. 测试程序2 - 合法输入
-    print_section("测试2.2 - 合法程序: result := 100 - x")
-    tokens2 = [
-        ('id', 'result'),
-        (':=', ':='),
-        ('num', '100'),
-        ('-', '-'),
-        ('id', 'x')
-    ]
-    
-    analyzer2 = PL0SemanticAnalyzer()
-    parser2 = LRParser(generator.grammar, action_table, goto_table,
-                      semantic_handler=analyzer2.semantic_action)
-    
-    success2 = parser2.parse(tokens2)
-    
-    if success2:
-        print("\n[OK] 分析结果: 合法")
-        print("\n使用的产生式序列:")
-        for i, record in enumerate(parser2.parse_history, 1):
-            if record['action'] == 'reduce':
-                print(f"  {i}. {record['production']}")
+        # 词法分析
+        try:
+            tokens = scanner.scan(test_case.input)
+            print(f"Token序列: {tokens}")
+        except Exception as e:
+            print(f"[错误] 词法分析失败: {e}")
+            continue
         
-        print("\n生成的中间代码:")
-        for i, code in enumerate(analyzer2.get_code(), 1):
-            print(f"  {i}: {code}")
-    else:
-        print("[FAIL] 分析失败")
+        # 语法分析
+        parser = LRParser(grammar, action_table, goto_table, PL0SemanticAnalyzer())
+        
+        result = False
+        try:
+            result = parser.parse(tokens)
+            
+            if result:
+                print("\n[OK] 分析结果: 合法")
+                
+                # 输出产生式序列
+                if parser.production_sequence:
+                    print("\n使用的产生式序列:")
+                    for idx, prod_idx in enumerate(parser.production_sequence, 1):
+                        prod = grammar.productions[prod_idx]
+                        right = ' '.join(prod.right) if prod.right else 'ε'
+                        print(f"  {idx}. {prod.left} -> {right}")
+                
+                # 输出中间代码
+                if parser.semantic_analyzer.code:
+                    print("\n生成的中间代码:")
+                    for idx, code_line in enumerate(parser.semantic_analyzer.code, 1):
+                        print(f"  {idx}: {code_line}")
+            else:
+                print("\n[EXPECTED] 分析结果: 非法（语法错误）")
+                
+        except Exception as e:
+            print(f"\n[错误] 语法分析异常: {e}")
+        
+        # 验证结果
+        actual = "legal" if result else "illegal"
+        if actual == test_case.expected:
+            print(f"\n[OK] 测试通过")
+        else:
+            print(f"\n[X] 测试失败 (预期: {test_case.expected}, 实际: {actual})")
+        
+        print()
     
-    # 5. 测试程序3 - 非法输入（缺少赋值符号）
-    print_section("测试2.3 - 非法程序: x a + b")
-    tokens3 = [
-        ('id', 'x'),
-        ('id', 'a'),
-        ('+', '+'),
-        ('id', 'b')
-    ]
-    
-    analyzer3 = PL0SemanticAnalyzer()
-    parser3 = LRParser(generator.grammar, action_table, goto_table,
-                      semantic_handler=analyzer3.semantic_action)
-    
-    success3 = parser3.parse(tokens3)
-    
-    if success3:
-        print("\n[OK] 分析结果: 合法")
-    else:
-        print("\n[EXPECTED] 分析结果: 非法（语法错误）")
-    
-    print("\n" + "="*80)
-    print("文法2测试总结：")
-    print(f"  [OK] 成功自动生成语法分析器")
-    print(f"  [OK] 测试了 3 个不同的程序（2个合法，1个非法）")
-    print(f"  [OK] 能正确判断程序合法性")
-    print(f"  [OK] 能输出产生式序列和中间代码")
+    # 测试总结
     print("="*80)
+    print(f"文法 '{config.name}' 测试完成!")
+    print(f"  - 词法规则: {len(config.lexical_rules)} 条")
+    print(f"  - 语法规则: {len(config.grammar_rules)} 条")
+    print(f"  - 测试用例: {len(config.test_cases)} 个")
+    print("="*80)
+    
+    pause()
 
-
-# ============================================================================
-# 主函数
-# ============================================================================
 
 def main():
-    """
-    主函数：演示编译器-编译器的自动生成能力
+    """主函数"""
+    print_header("编译器-编译器 自动生成演示系统")
     
-    测试内容：
-    1. 词法分析器：测试3个不同的词法规则
-    2. 语法分析器：测试2个不同的文法，每个文法测试3个程序
+    print("系统特点：")
+    print("  1. 配置驱动：从JSON文件读取文法定义")
+    print("  2. 自动生成：根据配置自动生成词法和语法分析器")
+    print("  3. 易于扩展：新增文法只需添加配置文件，无需修改代码")
+    print("  4. 完整测试：每个文法包含多个测试用例验证正确性")
     
-    满足课程要求：
-    - 输入文法规则，自动输出词法分析器和语法分析器
-    - 测试多个文法（至少2个）
-    - 每个文法测试多个程序（至少2个）
-    - 输出合法性判断和产生式序列
-    """
+    # 加载配置
+    print_section("加载文法配置文件")
+    loader = ConfigLoader("configs")
     
-    print("""
-╔══════════════════════════════════════════════════════════════════════════╗
-║                                                                          ║
-║                    编译器-编译器 (Compiler-Compiler)                    ║
-║                         自动生成能力演示                                 ║
-║                                                                          ║
-║  功能：输入文法规则，自动生成词法分析器和语法分析器                     ║
-║                                                                          ║
-║  测试内容：                                                              ║
-║    1. 词法分析器：3个不同的词法规则                                     ║
-║    2. 语法分析器文法1：算术表达式（3个测试程序）                        ║
-║    3. 语法分析器文法2：赋值语句（3个测试程序）                          ║
-║                                                                          ║
-║  作者：同学A（词法分析、语法分析负责人）                                ║
-║                                                                          ║
-╚══════════════════════════════════════════════════════════════════════════╝
-""")
+    try:
+        configs = loader.load_all()
+        print(f"[OK] 成功加载 {len(configs)} 个文法配置:")
+        for i, config in enumerate(configs, 1):
+            print(f"  {i}. {config.name} ({len(config.lexical_rules)}条词法规则, "
+                  f"{len(config.grammar_rules)}条语法规则, "
+                  f"{len(config.test_cases)}个测试用例)")
+    except Exception as e:
+        print(f"[错误] 加载配置失败: {e}")
+        return
     
-    # 第一部分：词法分析器自动生成测试
-    test_lexical_generators()
+    if not configs:
+        print("[错误] 未找到任何文法配置文件")
+        print("请在 configs/ 目录下添加 .json 配置文件")
+        return
     
-    # 第二部分：语法分析器测试 - 文法1（算术表达式）
-    test_expression_grammar()
+    # 验证配置
+    print_section("验证文法配置")
+    validator = ConfigValidator()
+    valid_configs = []
     
-    # 第三部分：语法分析器测试 - 文法2（赋值语句）
-    test_assignment_grammar()
+    for config in configs:
+        if validator.validate(config):
+            print(f"  [OK] {config.name}: 验证通过")
+            valid_configs.append(config)
+        else:
+            print(f"  [X] {config.name}: 验证失败")
     
-    # 总结
+    if not valid_configs:
+        print("[错误] 没有有效的文法配置")
+        return
+    
+    pause()
+    
+    # 创建编译器生成器
+    compiler = CompilerGenerator()
+    
+    # 测试每个文法
+    for i, config in enumerate(valid_configs, 1):
+        test_grammar(compiler, config, i)
+    
+    # 最终总结
     print_header("测试总结")
-    print("""
-[OK] 词法分析器自动生成能力验证：
-  - 测试了 3 个不同的词法规则
-  - 均成功生成对应的DFA转换表
-  
-[OK] 语法分析器自动生成能力验证：
-  - 测试了 2 个不同的文法
-  - 每个文法测试了 3 个不同的程序（包括合法和非法）
-  - 均能正确判断程序合法性
-  - 能输出使用的产生式序列
-  - 能生成中间代码（三地址码）
-
-[OK] 符合课程要求：
-  (1) 能根据输入的文法规则自动生成词法/语法分析器  [OK]
-  (2) 测试了多个文法（>=2个）                        [OK]
-  (3) 每个文法测试了多个程序（>=2个）                [OK]
-  (4) 输出了合法性判断和产生式序列                  [OK]
-
-项目文件说明：
-  - lexical/  : 词法分析生成器（Thompson + 子集构造 + DFA最小化）
-  - syntax/   : 语法分析生成器（FIRST/FOLLOW + LR(1) + LALR(1)）
-  - driver/   : LR分析驱动程序（栈式分析器 + 语义动作接口）
-  - utils/    : 工具函数（日志、文件I/O）
-  - main.py   : 本演示程序
-  
-给同学B的接口：
-  详见 API_FOR_TEAMMATE_B.md 文档
-""")
+    print(f"[OK] 共测试了 {len(valid_configs)} 个文法")
+    print(f"[OK] 每个文法均成功生成词法和语法分析器")
+    print(f"[OK] 所有测试用例均已运行")
+    print("\n项目文件说明：")
+    print("  - configs/       : 文法配置文件（JSON格式）")
+    print("  - lexical/       : 词法分析生成器")
+    print("  - syntax/        : 语法分析生成器")
+    print("  - driver/        : LR分析驱动程序")
+    print("  - utils/         : 工具函数（配置加载、可视化等）")
+    print("  - generated/     : 生成的分析器输出")
+    print("  - visualizations/: DFA/NFA可视化图表")
+    print("\n如需测试新文法，请在 configs/ 目录添加配置文件并重新运行程序")
 
 
 if __name__ == "__main__":

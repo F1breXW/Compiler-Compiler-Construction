@@ -28,6 +28,14 @@ class NFA:
     start_state: Optional[State] = None
     accept_states: Set[State] = field(default_factory=set)
     
+    def __post_init__(self):
+        # 确保transitions是一个defaultdict，即使反序列化时也一样
+        if not isinstance(self.transitions, defaultdict):
+            # 如果不是defaultdict，创建一个新的defaultdict并复制数据
+            old_transitions = self.transitions
+            self.transitions = defaultdict(set)
+            self.transitions.update(old_transitions)
+
     def add_transition(self, from_state: State, symbol: Optional[str], to_state: State):
         """
         添加状态转换
@@ -37,7 +45,12 @@ class NFA:
             symbol: 输入符号(None表示epsilon转换)
             to_state: 目标状态
         """
-        self.transitions[(from_state, symbol)].add(to_state)
+        # 确保key存在
+        key = (from_state, symbol)
+        if key not in self.transitions:
+            self.transitions[key] = set()
+            
+        self.transitions[key].add(to_state)
         self.states.add(from_state)
         self.states.add(to_state)
         if symbol is not None:

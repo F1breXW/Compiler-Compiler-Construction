@@ -1,0 +1,78 @@
+{
+  "name": "类型声明文法",
+  "description": "支持变量类型声明和位运算的自定义文法",
+  "lexical_rules": [
+    {
+      "pattern": "int",
+      "token": "TYPE",
+      "description": "类型关键字 int"
+    },
+    {
+      "pattern": "float",
+      "token": "TYPE",
+      "description": "类型关键字 float"
+    },
+    {
+      "pattern": "[a-z][a-z0-9]*",
+      "token": "VAR",
+      "description": "变量名（必须小写字母开头）"
+    },
+    {
+      "pattern": "[0-9]+\\.[0-9]+",
+      "token": "FLOAT",
+      "description": "浮点数字面量"
+    },
+    {
+      "pattern": "[0-9]+",
+      "token": "INTEGER",
+      "description": "整数字面量"
+    },
+    {
+      "pattern": "&",
+      "token": "BITAND",
+      "description": "位与运算符"
+    },
+    {
+      "pattern": "\\|",
+      "token": "BITOR",
+      "description": "位或运算符"
+    },
+    {
+      "pattern": "=",
+      "token": "ASSIGN",
+      "description": "赋值运算符"
+    },
+    {
+      "pattern": "\\+",
+      "token": "PLUS",
+      "description": "加法运算符"
+    }
+  ],
+  "grammar_rules": [
+    "S -> TYPE VAR ASSIGN E",
+    "E -> E PLUS T",
+    "E -> E BITAND T",
+    "E -> E BITOR T",
+    "E -> T",
+    "T -> VAR",
+    "T -> INTEGER",
+    "T -> FLOAT"
+  ],
+  "test_cases": [
+    {
+      "input": "int x = 10 + 3",
+      "expected": "legal",
+      "description": "整型变量声明并赋值"
+    },
+    {
+      "input": "float y = 3.14 + 2.0",
+      "expected": "legal",
+      "description": "浮点型变量声明"
+    },
+    {
+      "input": "int result = a & b",
+      "expected": "legal",
+      "description": "位运算表达式"
+    }
+  ]
+}

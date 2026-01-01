@@ -60,4 +60,4 @@ def save_parsing_tables(action_table: Dict, goto_table: Dict, filename: str = "p
     }
     
     save_json(tables, filename)
-    print(f"\n✓ 分析表已保存到 {filename}")
+    print(f"\n[OK] 分析表已保存到 {filename}")

@@ -1,0 +1,75 @@
+{
+  "name": "算术表达式文法",
+  "description": "支持加减乘除和括号的算术表达式文法",
+  "lexical_rules": [
+    {
+      "pattern": "\\+",
+      "token": "+",
+      "description": "加号运算符"
+    },
+    {
+      "pattern": "-",
+      "token": "-",
+      "description": "减号运算符"
+    },
+    {
+      "pattern": "\\*",
+      "token": "*",
+      "description": "乘号运算符"
+    },
+    {
+      "pattern": "/",
+      "token": "/",
+      "description": "除号运算符"
+    },
+    {
+      "pattern": "\\(",
+      "token": "(",
+      "description": "左括号"
+    },
+    {
+      "pattern": "\\)",
+      "token": ")",
+      "description": "右括号"
+    },
+    {
+      "pattern": "id",
+      "token": "id",
+      "description": "标识符 [a-zA-Z][a-zA-Z0-9]*"
+    },
+    {
+      "pattern": "num",
+      "token": "num",
+      "description": "数字 [0-9]+"
+    }
+  ],
+  "grammar_rules": [
+    "S -> E",
+    "E -> E + T",
+    "E -> E - T",
+    "E -> T",
+    "T -> T * F",
+    "T -> T / F",
+    "T -> F",
+    "F -> ( E )",
+    "F -> id",
+    "F -> num"
+  ],
+  "test_cases": [
+    {
+      "input": "a + b * c",
+      "expected": "legal",
+      "description": "测试运算符优先级（乘法优先于加法）"
+    },
+    {
+      "input": "(a + b) * c",
+      "expected": "legal",
+      "description": "测试括号改变运算优先级"
+    },
+    {
+      "input": "a + + b",
+      "expected": "illegal",
+      "description": "测试非法表达式（连续运算符）"
+    }
+  ]
+}

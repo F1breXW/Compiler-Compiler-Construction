@@ -2,7 +2,7 @@
 子集构造法: NFA转DFA
 """
 
-from typing import Set, Dict, FrozenSet
+from typing import Set, Dict, FrozenSet, Optional
 from collections import deque
 from .state import State
 from .nfa import NFA
@@ -55,6 +55,19 @@ class SubsetConstructor:
             result.update(next_states)
         return result
     
+    @staticmethod
+    def _get_accept_tag(states: FrozenSet[State]) -> Optional[str]:
+        """获取状态集中优先级最高的接受标签"""
+        best_tag = None
+        best_priority = float('inf')
+        
+        for state in states:
+            if state.is_accepting:
+                if state.priority < best_priority:
+                    best_priority = state.priority
+                    best_tag = state.tag
+        return best_tag
+
     def construct(self, nfa: NFA) -> DFA:
         """
         子集构造法: 将NFA转换为DFA
@@ -85,8 +98,10 @@ class SubsetConstructor:
         dfa.states.add(0)
         
         # 检查初始状态是否为接受状态
-        if any(s.is_accepting for s in start_closure):
+        tag = self._get_accept_tag(start_closure)
+        if tag is not None:
             dfa.accept_states.add(0)
+            dfa.accept_tags[0] = tag
         
         # 工作队列: 未处理的DFA状态
         worklist = deque([start_closure])
@@ -112,8 +127,10 @@ class SubsetConstructor:
                     worklist.append(next_closure)
                     
                     # 检查是否为接受状态
-                    if any(s.is_accepting for s in next_closure):
+                    tag = self._get_accept_tag(next_closure)
+                    if tag is not None:
                         dfa.accept_states.add(new_dfa_state)
+                        dfa.accept_tags[new_dfa_state] = tag
                 
                 # 添加转换
                 next_dfa_state = state_map[next_closure]

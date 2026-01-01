@@ -26,16 +26,20 @@ class DFAMinimizer:
             dfa: 输入的DFA
         返回: 最小化后的DFA
         """
-        # 初始划分: 接受状态 vs 非接受状态
-        accept_group = dfa.accept_states
+        # 初始划分: 非接受状态 + 按Tag划分的接受状态
         non_accept_group = dfa.states - dfa.accept_states
-        
-        # 分组列表
         partitions = []
-        if accept_group:
-            partitions.append(accept_group)
         if non_accept_group:
             partitions.append(non_accept_group)
+            
+        # 按Tag分组接受状态
+        tag_groups = defaultdict(set)
+        for state in dfa.accept_states:
+            tag = dfa.accept_tags.get(state)
+            tag_groups[tag].add(state)
+            
+        for group in tag_groups.values():
+            partitions.append(group)
         
         def get_group_id(state: int, partitions: List[Set[int]]) -> int:
             """获取状态所属的分组ID"""
@@ -93,8 +97,14 @@ class DFAMinimizer:
             group = set(group_fs)
             if dfa.start_state in group:
                 min_dfa.start_state = group_id
-            if any(s in dfa.accept_states for s in group):
-                min_dfa.accept_states.add(group_id)
+            
+            # 检查接受状态
+            for s in group:
+                if s in dfa.accept_states:
+                    min_dfa.accept_states.add(group_id)
+                    if s in dfa.accept_tags:
+                        min_dfa.accept_tags[group_id] = dfa.accept_tags[s]
+                    break
         
         # 构建转换表
         for group_fs, group_id in group_to_id.items():

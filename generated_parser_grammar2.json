@@ -1,0 +1,123 @@
+{
+  "action_table": {
+    "(0, id)": {
+      "action": "shift",
+      "value": 1
+    },
+    "(1, :=)": {
+      "action": "shift",
+      "value": 3
+    },
+    "(2, $)": {
+      "action": "accept",
+      "value": 0
+    },
+    "(3, num)": {
+      "action": "shift",
+      "value": 6
+    },
+    "(3, id)": {
+      "action": "shift",
+      "value": 5
+    },
+    "(4, +)": {
+      "action": "shift",
+      "value": 8
+    },
+    "(4, -)": {
+      "action": "shift",
+      "value": 9
+    },
+    "(4, $)": {
+      "action": "reduce",
+      "value": 1
+    },
+    "(5, -)": {
+      "action": "reduce",
+      "value": 5
+    },
+    "(5, +)": {
+      "action": "reduce",
+      "value": 5
+    },
+    "(5, $)": {
+      "action": "reduce",
+      "value": 5
+    },
+    "(6, -)": {
+      "action": "reduce",
+      "value": 6
+    },
+    "(6, +)": {
+      "action": "reduce",
+      "value": 6
+    },
+    "(6, $)": {
+      "action": "reduce",
+      "value": 6
+    },
+    "(7, +)": {
+      "action": "reduce",
+      "value": 4
+    },
+    "(7, -)": {
+      "action": "reduce",
+      "value": 4
+    },
+    "(7, $)": {
+      "action": "reduce",
+      "value": 4
+    },
+    "(8, num)": {
+      "action": "shift",
+      "value": 6
+    },
+    "(8, id)": {
+      "action": "shift",
+      "value": 5
+    },
+    "(9, num)": {
+      "action": "shift",
+      "value": 6
+    },
+    "(9, id)": {
+      "action": "shift",
+      "value": 5
+    },
+    "(10, +)": {
+      "action": "reduce",
+      "value": 2
+    },
+    "(10, $)": {
+      "action": "reduce",
+      "value": 2
+    },
+    "(10, -)": {
+      "action": "reduce",
+      "value": 2
+    },
+    "(11, $)": {
+      "action": "reduce",
+      "value": 3
+    },
+    "(11, -)": {
+      "action": "reduce",
+      "value": 3
+    },
+    "(11, +)": {
+      "action": "reduce",
+      "value": 3
+    }
+  },
+  "goto_table": {
+    "(0, S)": 2,
+    "(3, E)": 4,
+    "(3, T)": 7,
+    "(8, T)": 10,
+    "(9, T)": 11
+  },
+  "info": {
+    "action_entries": 27,
+    "goto_entries": 5
+  }
+}
