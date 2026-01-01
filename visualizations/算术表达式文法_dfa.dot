@@ -1,6 +1,6 @@
 digraph DFA {
     labelloc="t";
-    label="算术表达式文法 - Minimized DFA";
+    label="DFA";
     rankdir=LR;
     node [shape=circle, fontname="Helvetica"];
     edge [fontname="Helvetica"];
@@ -11,25 +11,25 @@ digraph DFA {
     "2" [shape=doublecircle];
     "2" [xlabel="num"];
     "3" [shape=doublecircle];
-    "3" [xlabel="*"];
+    "3" [xlabel="-"];
     "4" [shape=doublecircle];
-    "4" [xlabel="-"];
+    "4" [xlabel="("];
     "5" [shape=doublecircle];
-    "5" [xlabel="/"];
+    "5" [xlabel="+"];
     "6" [shape=doublecircle];
-    "6" [xlabel=")"];
+    "6" [xlabel="/"];
     "7" [shape=doublecircle];
-    "7" [xlabel="("];
+    "7" [xlabel="*"];
     "8" [shape=doublecircle];
-    "8" [xlabel="+"];
+    "8" [xlabel=")"];
     "0" -> "1" [label="letter"];
     "0" -> "2" [label="digit"];
-    "0" -> "3" [label="*"];
-    "0" -> "4" [label="-"];
-    "0" -> "5" [label="/"];
-    "0" -> "6" [label=")"];
-    "0" -> "7" [label="("];
-    "0" -> "8" [label="+"];
+    "0" -> "3" [label="-"];
+    "0" -> "4" [label="("];
+    "0" -> "5" [label="+"];
+    "0" -> "6" [label="/"];
+    "0" -> "7" [label="*"];
+    "0" -> "8" [label=")"];
     "1" -> "1" [label="letter"];
     "2" -> "2" [label="digit"];
 }

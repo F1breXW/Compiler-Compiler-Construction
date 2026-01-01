@@ -75,11 +75,22 @@ python demo_two_stages.py configs/grammar1_arithmetic.json test_programs/arithme
    - 词法规则数：8个
    - DFA状态数：9个
    - Thompson构造 → NFA → DFA → 最小化
+   - **可视化**：生成 `visualizations/算术表达式文法_dfa.dot`
 3. **自动生成语法分析器**：
    - 文法产生式：10个
    - LALR(1)状态数：18个（从33个LR(1)状态压缩）
    - 完全自动构建分析表
+   - **可视化**：生成 `visualizations/算术表达式文法_lalr_table.html`
 4. **强调**：这些都是自动生成的，不是手写的！
+
+**【可选：展示可视化结果】**
+```bash
+# 查看生成的DFA图（需要Graphviz支持，或直接展示文件存在）
+ls visualizations/*.dot
+
+# 查看生成的LALR分析表（推荐！）
+start visualizations/算术表达式文法_lalr_table.html
+```
 
 **【按回车键暂停，讲解完毕后继续】**
 

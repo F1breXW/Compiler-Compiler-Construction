@@ -24,6 +24,8 @@ from lexical import LexicalGenerator, Scanner
 from syntax import Grammar, ParserGenerator
 from driver import LRParser, PL0SemanticAnalyzer, ParseTreeVisualizer
 from utils.config_loader import ConfigLoader
+from utils.visualizer import GraphvizVisualizer
+from visualize_table import generate_table_html
 
 
 def stage1_generate_compiler(config_path: str):
@@ -61,6 +63,13 @@ def stage1_generate_compiler(config_path: str):
     print(f"   - DFA状态数: {len(table)}")
     print(f"   - 识别Token类型: {list(accepting_map.values())}")
     
+    # 可视化DFA
+    if lexical_gen.last_min_dfa:
+        os.makedirs("visualizations", exist_ok=True)
+        dot_file = f"visualizations/{config.name.replace(' ', '_')}_dfa.dot"
+        GraphvizVisualizer.export_dfa(lexical_gen.last_min_dfa, dot_file)
+        print(f"   - [可视化] DFA已导出: {dot_file}")
+
     # ===== 第2步：生成语法分析器 =====
     print("\n" + "-" * 80)
     print("【步骤2】生成语法分析器（LALR(1)）")
@@ -102,6 +111,11 @@ def stage1_generate_compiler(config_path: str):
     print(f"   - ACTION表项数: {action_count}")
     print(f"   - GOTO表项数: {goto_count}")
     
+    # 可视化分析表
+    html_file = f"visualizations/{config.name.replace(' ', '_')}_lalr_table.html"
+    generate_table_html(config_path, html_file)
+    print(f"   - [可视化] LALR分析表已导出: {html_file}")
+
     print("\n" + "=" * 80)
     print("【阶段1完成】编译器已自动生成！")
     print("=" * 80)

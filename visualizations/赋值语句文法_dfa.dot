@@ -1,6 +1,6 @@
 digraph DFA {
     labelloc="t";
-    label="赋值语句文法 - Minimized DFA";
+    label="DFA";
     rankdir=LR;
     node [shape=circle, fontname="Helvetica"];
     edge [fontname="Helvetica"];
@@ -18,9 +18,9 @@ digraph DFA {
     "6" [xlabel=":="];
     "0" -> "2" [label="letter"];
     "0" -> "3" [label="digit"];
+    "0" -> "1" [label=":"];
     "0" -> "4" [label="-"];
     "0" -> "5" [label="+"];
-    "0" -> "1" [label=":"];
     "1" -> "6" [label="="];
     "2" -> "2" [label="letter"];
     "3" -> "3" [label="digit"];
