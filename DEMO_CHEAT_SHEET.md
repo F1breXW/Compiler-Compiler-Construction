@@ -45,9 +45,9 @@ python demo_two_stages.py configs/grammar1_arithmetic.json test_programs/arithme
 
 ---
 
-### 备用：一步完成（如果时间紧张）
+### 备用：一步完成
 
-### 第一部分（15分钟）
+### 第一部分
 
 ```bash
 # 文法1 - 算术表达式（强调：8规则、9状态、18 LALR）
@@ -59,20 +59,13 @@ python test_from_file.py configs/grammar2_assignment.json test_programs/assignme
 python test_from_file.py configs/grammar2_assignment.json test_programs/assignment_2.txt
 ```
 
-### 第二部分（10分钟）
+### 第二部分
 
 ```bash
 # 基础：算术运算
 python tests/intermediate_code/test_ic_generation.py test_programs/intermediate_code/ic_test1_arithmetic.txt
 
-# 控制流：if/else（重点）
-python tests/intermediate_code/test_ic_generation.py test_programs/intermediate_code/ic_test2_if_else.txt
 
-# 循环：while（重点）
-python tests/intermediate_code/test_ic_generation.py test_programs/intermediate_code/ic_test3_while.txt
-
-# 复杂：布尔表达式（可选）
-python tests/intermediate_code/test_ic_generation.py test_programs/intermediate_code/ic_test4_bool.txt
 ```
 
 ---
