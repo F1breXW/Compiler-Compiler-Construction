@@ -86,7 +86,7 @@ def test_intermediate_code(config_path: str, source_file: str):
     try:
         result = parser.parse(tokens)
         
-        if result:
+        if result == 1:
             print(f"\n{'='*70}")
             print("[分析结果] 源程序合法")
             print(f"{'='*70}")
@@ -125,7 +125,7 @@ def test_intermediate_code(config_path: str, source_file: str):
             return True
         else:
             print(f"\n{'='*70}")
-            print("[分析结果] 源程序存在语法错误")
+            print("[分析结果] 源程序存在错误")
             print(f"{'='*70}")
             return False
             

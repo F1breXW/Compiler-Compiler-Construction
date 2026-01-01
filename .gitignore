@@ -3,3 +3,6 @@
 /lexical/__pycache__/
 /syntax/__pycache__/
 /utils/__pycache__/
+__pycache__/
+generated/
+visualizations/
