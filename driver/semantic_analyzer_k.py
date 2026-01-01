@@ -84,7 +84,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
         type -> int | bool
         """
         prod_name = str(production)
-        print(f"[语义动作]处理产生式：{prod_name}")
+        print(f"    [语义动作]处理产生式：{prod_name}")
         left = production.left
         if left == 'P':
             return self.handle_program(production, symbols)
@@ -99,7 +99,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
         elif left == 'B':
             return  self.handle_boolean(production, symbols)
         else:
-            print(f"[错误] 无效的产生式左部：{left}")
+            print(f"    [错误] 无效的产生式左部：{left}")
             return None
 
     def handle_program(self, production: Production, symbols: List[Symbol]) -> Any:
@@ -125,11 +125,11 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             var_name = str(id_sym.value)
 
             if var_name in self.symbol_table:
-                print(f"[语义错误] 变量 '{var_name}' 重复声明")
+                print(f"    [语义错误] 变量 '{var_name}' 重复声明")
                 return None
 
             self.add_symbol(var_name, {"type": var_type, "initialized": False})
-            print(f"[语义] 声明变量: {var_name} : {var_type}")
+            print(f"    [语义] 声明变量: {var_name} : {var_type}")
             return None
 
         elif ":=" in prod_str: # S -> id := E ;
@@ -139,7 +139,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
 
             # 检查变量是否声明
             if var_name not in self.symbol_table:
-                print(f"[语义错误] 变量 '{var_name}' 未声明")
+                print(f"    [语义错误] 变量 '{var_name}' 未声明")
                 return None
 
             # 获取变量类型
@@ -147,12 +147,12 @@ class MySemanticAnalyzer(SemanticAnalyzer):
 
             # 检查表达式是否有属性
             if not expr_attr or "type" not in expr_attr:
-                print(f"[语义错误] 表达式属性缺失")
+                print(f"    [语义错误] 表达式属性缺失")
                 return None
 
             # 检查类型匹配
             if var_info["type"] != expr_attr["type"]:
-                print(f"[语义错误] 类型不匹配: 不能将 {expr_attr['type']} 赋值给 {var_info['type']} 变量 {var_name}")
+                print(f"    [语义错误] 类型不匹配: 不能将 {expr_attr['type']} 赋值给 {var_info['type']} 变量 {var_name}")
                 return None
 
             # 生成中间代码
@@ -165,7 +165,10 @@ class MySemanticAnalyzer(SemanticAnalyzer):
 
             # 标记变量已初始化
             var_info["initialized"] = True
-            print(f"[语义] 赋值: {var_name} := {expr_attr.get('value', expr_attr.get('temp', '?'))}")
+            if expr_attr.get("temp"):
+                print(f"    [语义] 赋值: {var_name} := {expr_attr.get('temp')}")
+            else:
+                print(f"    [语义] 赋值: {var_name} := {expr_attr.get('value')}")
             return None
 
         elif "if" in prod_str:
@@ -188,7 +191,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             if expr_attr and "temp" in expr_attr:
                 # 表达式有结果，生成中间代码
                 temp_var = expr_attr["temp"]
-                print(f"[语义] 表达式语句，结果在 {temp_var}")
+                print(f"    [语义] 表达式语句，结果在 {temp_var}")
             return None
 
     def handle_if_statement(self, production: Production, symbols: List[Symbol]) -> Any:
@@ -223,7 +226,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
         bool_attr = symbols[2].attributes  # B的综合属性
 
         if not bool_attr:
-            print(f"[语义错误] while语句中布尔表达式属性缺失")
+            print(f"    [语义错误] while语句中布尔表达式属性缺失")
             return None
 
         # 生成标签
@@ -248,7 +251,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
         self.emit(f"LABEL {end_label}:")
         self.backpatch(bool_attr.get("falselist", []), end_label)
 
-        print(f"[语义] 生成while语句，标签: {begin_label}, {body_label}, {end_label}")
+        print(f"    [语义] 生成while语句，标签: {begin_label}, {body_label}, {end_label}")
         return None
 
     def handle_expression(self, production: Production, symbols: List[Symbol]) -> Any:
@@ -264,14 +267,14 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             right_attr = symbols[2].attributes
             # 检查属性是否存在
             if not left_attr or "type" not in left_attr:
-                print(f"[语义错误] 左操作数属性缺失")
+                print(f"    [语义错误] 左操作数属性缺失")
                 return {"type": "error", "value": None}
             if not right_attr or "type" not in right_attr:
-                print(f"[语义错误] 右操作数属性缺失")
+                print(f"    [语义错误] 右操作数属性缺失")
                 return {"type": "error", "value": None}
             # 检查类型
             if left_attr["type"] != "int" or right_attr["type"] != "int":
-                print(f"[语义错误] 算术运算要求int类型，得到 {left_attr['type']} {op} {right_attr['type']}")
+                print(f"    [语义错误] 算术运算要求int类型，得到 {left_attr['type']} {op} {right_attr['type']}")
                 return {"type": "error", "value": None}
 
             # 生成临时变量和中间代码
@@ -285,7 +288,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             # 记录临时变量类型
             self.temp_vars[temp_var] = "int"
 
-            print(f"[语义] 生成算术运算: {temp_var} = {left_val} {op} {right_val}")
+            print(f"    [语义] 生成算术运算: {temp_var} = {left_val} {op} {right_val}")
 
             return {
                 "type": "int",
@@ -308,14 +311,14 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             right_attr = symbols[2].attributes
             # 检查属性是否存在
             if not left_attr or "type" not in left_attr:
-                print(f"[语义错误] 左操作数属性缺失")
+                print(f"    [语义错误] 左操作数属性缺失")
                 return {"type": "error", "value": None}
             if not right_attr or "type" not in right_attr:
-                print(f"[语义错误] 右操作数属性缺失")
+                print(f"    [语义错误] 右操作数属性缺失")
                 return {"type": "error", "value": None}
             # 检查类型
             if left_attr["type"] != "int" or right_attr["type"] != "int":
-                print(f"[语义错误] 算术运算要求int类型，得到 {left_attr['type']} {op} {right_attr['type']}")
+                print(f"    [语义错误] 算术运算要求int类型，得到 {left_attr['type']} {op} {right_attr['type']}")
                 return {"type": "error", "value": None}
 
 
@@ -330,7 +333,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             # 记录临时变量类型
             self.temp_vars[temp_var] = "int"
 
-            print(f"[语义] 生成项运算: {temp_var} = {left_val} {op} {right_val}")
+            print(f"    [语义] 生成项运算: {temp_var} = {left_val} {op} {right_val}")
 
             return {
                 "type": "int",
@@ -369,13 +372,13 @@ class MySemanticAnalyzer(SemanticAnalyzer):
 
                 # 检查变量是否声明
                 if var_name not in self.symbol_table:
-                    print(f"[语义错误] 变量 '{var_name}' 未声明")
+                    print(f"    [语义错误] 变量 '{var_name}' 未声明")
                     return {"type": "error", "value": None}
 
                 # 检查变量是否初始化
                 var_info = self.symbol_table[var_name]
                 if not var_info["initialized"]:
-                    print(f"[语义警告] 变量 '{var_name}' 可能未初始化")
+                    print(f"    [语义警告] 变量 '{var_name}' 可能未初始化")
 
                 return {
                     "type": var_info["type"],

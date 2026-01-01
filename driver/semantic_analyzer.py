@@ -48,7 +48,7 @@ class SemanticAnalyzer:
         """
         self.intermediate_code.append(code)
         self.nextinstr += 1
-        print(f"      [生成代码] {code}")
+        print(f"     [生成代码] {code}")
     
     def add_symbol(self, name: str, type_or_value: Any):
         """
