@@ -56,6 +56,8 @@ class MySemanticAnalyzer(SemanticAnalyzer):
     def handle_program(self, production: Production, symbols: List[Symbol]) -> Any:
         if len(symbols) == 2: # P -> S P
             return True
+        if len(symbols) == 1: # P-> S
+            return True
         elif (len(symbols) == 0) or symbols[0] == 'ε': # P -> ε
             if self.block_level > 0:
                 print(f"程序结束，但仍有{self.block_level}给未关闭的复合语句块")
@@ -150,14 +152,14 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             # 检查属性是否存在
             if not left_attr or "type" not in left_attr:
                 print(f"    [语义错误] 左操作数属性缺失")
-                return {"type": "error", "value": None}
+                return None
             if not right_attr or "type" not in right_attr:
                 print(f"    [语义错误] 右操作数属性缺失")
-                return {"type": "error", "value": None}
+                return None
             # 检查类型
             if left_attr["type"] != "int" or right_attr["type"] != "int":
                 print(f"    [语义错误] 算术运算要求int类型，得到 {left_attr['type']} {op} {right_attr['type']}")
-                return {"type": "error", "value": None}
+                return None
 
             # 生成临时变量和中间代码
             temp_var = self.new_temp()
@@ -178,7 +180,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
                 "value": f"{left_val} {op} {right_val}"
             }
 
-        return {"type": "error", "value": None}
+        return None
 
     def handle_term(self, production: Production, symbols: List[Symbol]) -> Any:
         """处理项: T → T * F | T / F | F"""
@@ -194,14 +196,14 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             # 检查属性是否存在
             if not left_attr or "type" not in left_attr:
                 print(f"    [语义错误] 左操作数属性缺失")
-                return {"type": "error", "value": None}
+                return None
             if not right_attr or "type" not in right_attr:
                 print(f"    [语义错误] 右操作数属性缺失")
-                return {"type": "error", "value": None}
+                return None
             # 检查类型
             if left_attr["type"] != "int" or right_attr["type"] != "int":
                 print(f"    [语义错误] 算术运算要求int类型，得到 {left_attr['type']} {op} {right_attr['type']}")
-                return {"type": "error", "value": None}
+                return None
 
 
             # 生成临时变量和中间代码
@@ -223,7 +225,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
                 "value": f"{left_val} {op} {right_val}"
             }
 
-        return {"type": "error", "value": None}
+        return None
 
     def handle_factor(self, production: Production, symbols: List[Symbol]) -> Any:
         """处理因子: F → (E) | id | num"""
@@ -250,13 +252,13 @@ class MySemanticAnalyzer(SemanticAnalyzer):
                 # 检查变量是否声明
                 if var_name not in self.symbol_table:
                     print(f"    [语义错误] 变量 '{var_name}' 未声明")
-                    return {"type": "error", "value": None}
+                    return None
 
                 # 检查变量是否初始化
                 var_info = self.symbol_table[var_name]
                 if not var_info["initialized"]:
                     print(f"    [语义错误] 变量 '{var_name}' 可能未初始化")
-                    return {"type": "error", "value": None}
+                    return None
 
                 return {
                     "type": var_info["type"],
@@ -264,7 +266,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
                     "temp": None
                 }
 
-        return {"type": "error", "value": None}
+        return None
 
 
 
