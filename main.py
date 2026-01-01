@@ -6,7 +6,7 @@
 
 from lexical import LexicalGenerator, Scanner
 from syntax import Grammar, ParserGenerator
-from driver import LRParser, PL0SemanticAnalyzer
+from driver import LRParser, PL0SemanticAnalyzer, ParseTreeVisualizer
 from utils import save_parsing_tables, save_json
 from utils.visualizer import GraphvizVisualizer
 from utils.config_loader import ConfigLoader, ConfigValidator, GrammarConfig
@@ -182,7 +182,7 @@ def test_grammar(compiler: CompilerGenerator, config: GrammarConfig, grammar_ind
             if result:
                 print("\n[OK] 分析结果: 合法")
                 
-                # 输出产生式序列
+                # ====== 课程要求1: 输出产生式序列 ======
                 if parser.production_sequence:
                     print("\n使用的产生式序列:")
                     for idx, prod_idx in enumerate(parser.production_sequence, 1):
@@ -190,11 +190,29 @@ def test_grammar(compiler: CompilerGenerator, config: GrammarConfig, grammar_ind
                         right = ' '.join(prod.right) if prod.right else 'ε'
                         print(f"  {idx}. {prod.left} -> {right}")
                 
-                # 输出中间代码
-                if parser.semantic_analyzer.code:
-                    print("\n生成的中间代码:")
-                    for idx, code_line in enumerate(parser.semantic_analyzer.code, 1):
-                        print(f"  {idx}: {code_line}")
+                # ====== 课程要求2: 输出语法树 ======
+                parse_tree = parser.get_parse_tree()
+                if parse_tree:
+                    print("\n语法树（树形结构）:")
+                    print(ParseTreeVisualizer.to_text(parse_tree))
+                    
+                    # 导出语法树到文件
+                    tree_filename = f"generated/{config.name.replace(' ', '_')}_test{i}_tree.json"
+                    os.makedirs("generated", exist_ok=True)
+                    ParseTreeVisualizer.to_json(parse_tree, tree_filename)
+                    print(f"  [语法树已保存] {tree_filename}")
+                    
+                    # 导出DOT格式（可选）
+                    dot_filename = f"visualizations/{config.name.replace(' ', '_')}_test{i}_tree.dot"
+                    if ParseTreeVisualizer.to_dot(parse_tree, dot_filename):
+                        print(f"  [语法树可视化] {dot_filename}")
+                
+                # 输出中间代码（如果有语义分析器）
+                if hasattr(parser, 'semantic_handler') and parser.semantic_handler:
+                    if hasattr(parser.semantic_handler, 'code') and parser.semantic_handler.code:
+                        print("\n生成的中间代码:")
+                        for idx, code_line in enumerate(parser.semantic_handler.code, 1):
+                            print(f"  {idx}: {code_line}")
             else:
                 print("\n[EXPECTED] 分析结果: 非法（语法错误）")
                 

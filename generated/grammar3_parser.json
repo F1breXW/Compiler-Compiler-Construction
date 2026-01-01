@@ -6,7 +6,7 @@
     },
     "(5, $)": {
       "action": "reduce",
-      "value": 1
+      "value": 7
     },
     "(6, $)": {
       "action": "reduce",
@@ -14,23 +14,23 @@
     },
     "(7, $)": {
       "action": "reduce",
-      "value": 6
+      "value": 1
     },
     "(8, $)": {
       "action": "reduce",
-      "value": 7
+      "value": 5
     },
     "(9, $)": {
       "action": "reduce",
-      "value": 5
+      "value": 6
     },
     "(13, $)": {
       "action": "reduce",
-      "value": 3
+      "value": 2
     },
     "(14, $)": {
       "action": "reduce",
-      "value": 2
+      "value": 3
     },
     "(15, $)": {
       "action": "reduce",
@@ -42,26 +42,26 @@
     "(0, S)": 1,
     "(2, VAR)": 3,
     "(3, ASSIGN)": 4,
-    "(4, E)": 5,
-    "(4, VAR)": 7,
+    "(4, INTEGER)": 5,
     "(4, FLOAT)": 6,
-    "(4, T)": 9,
-    "(4, INTEGER)": 8,
-    "(5, BITAND)": 10,
-    "(5, BITOR)": 12,
-    "(5, PLUS)": 11,
-    "(10, VAR)": 7,
-    "(10, T)": 13,
+    "(4, E)": 7,
+    "(4, T)": 8,
+    "(4, VAR)": 9,
+    "(7, BITAND)": 11,
+    "(7, PLUS)": 10,
+    "(7, BITOR)": 12,
     "(10, FLOAT)": 6,
-    "(10, INTEGER)": 8,
-    "(11, VAR)": 7,
-    "(11, T)": 14,
+    "(10, INTEGER)": 5,
+    "(10, VAR)": 9,
+    "(10, T)": 13,
     "(11, FLOAT)": 6,
-    "(11, INTEGER)": 8,
-    "(12, T)": 15,
-    "(12, VAR)": 7,
+    "(11, T)": 14,
+    "(11, INTEGER)": 5,
+    "(11, VAR)": 9,
     "(12, FLOAT)": 6,
-    "(12, INTEGER)": 8
+    "(12, INTEGER)": 5,
+    "(12, VAR)": 9,
+    "(12, T)": 15
   },
   "info": {
     "action_entries": 9,

@@ -5,6 +5,7 @@ LR分析器驱动程序
 from typing import List, Dict, Tuple, Callable, Optional, Any
 from syntax import Grammar
 from .symbol import Symbol
+from .parse_tree import ParseTreeBuilder, ParseTreeNode
 
 
 class LRParser:
@@ -38,6 +39,12 @@ class LRParser:
         
         # 分析历史记录(用于调试和演示)
         self.parse_history: List[Dict] = []
+        
+        # 产生式序列记录（课程要求）
+        self.production_sequence: List[int] = []
+        
+        # 语法树构建器（课程要求）
+        self.tree_builder: ParseTreeBuilder = ParseTreeBuilder()
     
     def parse(self, tokens: List[Tuple[str, Any]]) -> bool:
         """
@@ -66,6 +73,8 @@ class LRParser:
         self.state_stack = [0]
         self.symbol_stack = []
         self.parse_history = []
+        self.production_sequence = []  # 清空产生式序列
+        self.tree_builder.clear()  # 清空语法树构建器
         
         # 添加结束标记
         tokens = tokens + [('$', None)]
@@ -113,6 +122,9 @@ class LRParser:
         self.state_stack.append(state)
         self.symbol_stack.append(Symbol(token, value))
         
+        # 语法树：压入终结符节点
+        self.tree_builder.push_terminal(token, value)
+        
         # 记录历史
         self.parse_history.append({
             'step': step,
@@ -125,6 +137,9 @@ class LRParser:
         """处理reduce动作"""
         production = self.grammar.productions[prod_id]
         print(f"  动作: REDUCE {production}")
+        
+        # 记录产生式序列（课程要求）
+        self.production_sequence.append(prod_id)
         
         # 弹出|β|个状态和符号
         beta_length = len(production.right)
@@ -139,6 +154,13 @@ class LRParser:
         
         # 调用语义动作处理器
         semantic_value = self._handle_semantic_action(production, reduced_symbols)
+        
+        # 语法树：执行归约操作
+        self.tree_builder.reduce(
+            production_str=str(production),
+            left=production.left,
+            right=list(production.right)
+        )
         
         # 查GOTO表
         goto_state = self.state_stack[-1]
@@ -179,7 +201,12 @@ class LRParser:
         
         # 如果用户提供了语义处理器，调用它
         if self.semantic_handler is not None:
-            result = self.semantic_handler(production, symbols)
+            # 检查是否有semantic_action方法
+            if hasattr(self.semantic_handler, 'semantic_action'):
+                result = self.semantic_handler.semantic_action(production, symbols)
+            else:
+                # 尝试直接调用
+                result = self.semantic_handler(production, symbols)
             print(f"    [语义动作] 返回值: {result}")
             return result
         
@@ -197,13 +224,16 @@ class LRParser:
         print(f"  当前输入: {token} (位置{index})")
         print(f"  剩余输入: {[t[0] for t in tokens[index:]]}")
     
-    def get_parse_tree(self) -> Dict:
+    def get_parse_tree(self) -> Optional[ParseTreeNode]:
         """
-        获取分析树(可选功能)
-        返回分析历史记录，可用于可视化
+        获取语法树根节点（课程要求）
+        返回构建好的语法树
         """
-        return {
-            'history': self.parse_history,
-            'success': len(self.parse_history) > 0 and 
-                      self.parse_history[-1].get('action') == 'accept'
-        }
+        return self.tree_builder.get_root()
+    
+    def get_production_sequence(self) -> List[int]:
+        """
+        获取产生式序列（课程要求）
+        返回分析过程中使用的产生式编号列表
+        """
+        return self.production_sequence
