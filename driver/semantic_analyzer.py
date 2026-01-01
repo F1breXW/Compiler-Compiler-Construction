@@ -21,6 +21,8 @@ class SemanticAnalyzer:
         """初始化语义分析器"""
         # 符号表: {变量名: 类型/值}
         self.symbol_table: Dict[str, Any] = {}
+
+        self.nextinstr = 0
         
         # 临时变量计数器
         self.temp_counter = 0
@@ -45,6 +47,7 @@ class SemanticAnalyzer:
             code: 三地址码语句
         """
         self.intermediate_code.append(code)
+        self.nextinstr += 1
         print(f"      [生成代码] {code}")
     
     def add_symbol(self, name: str, type_or_value: Any):

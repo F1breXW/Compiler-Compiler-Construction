@@ -21,10 +21,9 @@ class PL0SemanticAnalyzer(SemanticAnalyzer):
         注意: 这只是一个简化的示例，实际的PL/0语义分析会更复杂
         """
         prod_str = str(production)
-        
-        # 示例: 算术表达式的翻译
-        if "+" in prod_str or "-" in prod_str or "*" in prod_str or "/" in prod_str:
-            if len(symbols) == 3:
+
+        if len(symbols) == 3:
+            if symbols[1].value in ['+','-','*','/']:
                 # 二元运算: E -> E op T
                 left = symbols[0].value
                 op = symbols[1].name
@@ -33,6 +32,8 @@ class PL0SemanticAnalyzer(SemanticAnalyzer):
                 temp = self.new_temp()
                 self.emit(f"{temp} = {left} {op} {right}")
                 return temp
+            elif "(" in prod_str:
+                return symbols[1].value
         
         # 示例: 赋值语句
         if ":=" in prod_str:

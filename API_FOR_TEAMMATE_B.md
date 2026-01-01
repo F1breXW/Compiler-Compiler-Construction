@@ -25,6 +25,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
         """
         语义动作处理函数
         
+        
         参数:
             production: 当前归约使用的产生式对象
             symbols: 归约的符号列表(每个符号有name和value属性)

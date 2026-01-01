@@ -1,0 +1,5 @@
+.idea/
+/driver/__pycache__/
+/lexical/__pycache__/
+/syntax/__pycache__/
+/utils/__pycache__/
