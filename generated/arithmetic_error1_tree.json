@@ -2,18 +2,8 @@
   "symbol": "S",
   "value": null,
   "is_terminal": false,
-  "production": "S -> id := E",
+  "production": "S -> E",
   "children": [
-    {
-      "symbol": "id",
-      "value": "x",
-      "is_terminal": true
-    },
-    {
-      "symbol": ":=",
-      "value": ":=",
-      "is_terminal": true
-    },
     {
       "symbol": "E",
       "value": null,
@@ -24,19 +14,19 @@
           "symbol": "E",
           "value": null,
           "is_terminal": false,
-          "production": "E -> E + T",
+          "production": "E -> T",
           "children": [
             {
-              "symbol": "E",
+              "symbol": "T",
               "value": null,
               "is_terminal": false,
-              "production": "E -> T",
+              "production": "T -> F",
               "children": [
                 {
-                  "symbol": "T",
+                  "symbol": "F",
                   "value": null,
                   "is_terminal": false,
-                  "production": "T -> id",
+                  "production": "F -> id",
                   "children": [
                     {
                       "symbol": "id",
@@ -44,24 +34,6 @@
                       "is_terminal": true
                     }
                   ]
-                }
-              ]
-            },
-            {
-              "symbol": "+",
-              "value": "+",
-              "is_terminal": true
-            },
-            {
-              "symbol": "T",
-              "value": null,
-              "is_terminal": false,
-              "production": "T -> id",
-              "children": [
-                {
-                  "symbol": "id",
-                  "value": "id",
-                  "is_terminal": true
                 }
               ]
             }
@@ -76,12 +48,20 @@
           "symbol": "T",
           "value": null,
           "is_terminal": false,
-          "production": "T -> id",
+          "production": "T -> F",
           "children": [
             {
-              "symbol": "id",
-              "value": "id",
-              "is_terminal": true
+              "symbol": "F",
+              "value": null,
+              "is_terminal": false,
+              "production": "F -> id",
+              "children": [
+                {
+                  "symbol": "id",
+                  "value": "id",
+                  "is_terminal": true
+                }
+              ]
             }
           ]
         }
