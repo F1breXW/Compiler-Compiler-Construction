@@ -12,48 +12,14 @@ class MySemanticAnalyzer(SemanticAnalyzer):
     def __init__(self):
         super().__init__()
 
-        self.label_counter = 0
-        self.backpatch_list=[]
-        self.control_stack=[]
-        self.while_stack = []
+
         self.current_type = None
         self.expr_type = None
         self.temp_vars = {}
 
-        self.bool_expr_temp = None
-
         self.block_level = 0
 
-    def new_label(self) -> str:
-        self.label_counter += 1
-        return f"L{self.label_counter}"
 
-    def emit_with_backpatch(self, code: str, patch_list=None) -> int:
-        addr = self.nextinstr
-        self.emit(code)
-        if patch_list is not None:
-            patch_list.append(addr)
-
-        return addr
-
-    def make_list(self, addr: int):
-        return [addr]
-
-    def merge(self, list1, list2):
-        return list1+list2
-
-    def backpatch(self, patch_list, label):
-        if not patch_list:
-            return
-        for addr in patch_list:
-            if addr < len(self.intermediate_code):
-                code = self.intermediate_code[addr]
-                if code.startswith("if ") and " goto" in code:
-                    parts = code.split(" goto ")
-                    if len(parts)==2:
-                        self.intermediate_code[addr] = f"{parts[0]} goto {label}"
-                elif code.startswith("goto "):
-                    self.intermediate_code[addr] = f"goto {label}"
 
     def semantic_action(self, production, symbols):
         """
@@ -62,26 +28,12 @@ class MySemanticAnalyzer(SemanticAnalyzer):
 
         S -> E;
         S -> id := E ;
-        S -> type id ;
-        S -> if ( B ) then S
-        S -> if ( B ) then S else S
-        S -> while ( B ) do S
+        S -> int id ;
         S -> { P }
-
-        B -> E relop E
-        B -> true | false
-        B -> ( B )
-        B -> ! B
-        B -> B && B
-        B -> B || B
 
         E -> E + T | E - T | T
         T -> T * F | T / F | F
         F -> ( E ) | id | num
-
-        relop -> == | != | < | > | <= | >=
-
-        type -> int | bool
         """
         prod_name = str(production)
         print(f"    [语义动作]处理产生式：{prod_name}")
@@ -96,8 +48,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
             return self.handle_term(production, symbols)
         elif left == 'F':
             return self.handle_factor(production, symbols)
-        elif left == 'B':
-            return  self.handle_boolean(production, symbols)
+
         else:
             print(f"    [错误] 无效的产生式左部：{left}")
             return None
@@ -117,11 +68,11 @@ class MySemanticAnalyzer(SemanticAnalyzer):
         #    self.block_level += 1
         #    print(f"[语义操作] 进入复合语句块，层级：{self.block_level}")
 
-        if ("int id" in prod_str or "bool id" in prod_str): # S -> int id ; | S -> bool id ;
+        if "int id" in prod_str: # S -> int id ;
             type_token = symbols[0]
             id_sym = symbols[1]
 
-            var_type = str(type_token.value)  # 'int' 或 'bool'
+            var_type = str(type_token.value)  # 'int'
             var_name = str(id_sym.value)
 
             if var_name in self.symbol_table:
@@ -171,20 +122,6 @@ class MySemanticAnalyzer(SemanticAnalyzer):
                 print(f"    [语义] 赋值: {var_name} := {expr_attr.get('value')}")
             return None
 
-        elif "if" in prod_str:
-            # if语句处理
-            return self.handle_if_statement(production, symbols)
-
-        elif "while" in prod_str:
-            # while语句处理
-            return self.handle_while_statement(production, symbols)
-
-        #elif str(symbols[-1]) == '}':
-        #    # 复合语句结束
-        #    self.block_level -= 1
-        #    print(f"[语义] 退出复合语句块，层级: {self.block_level}")
-        #    return None
-
         else:  # S → E ;
             # 表达式语句
             expr_attr = symbols[0].attributes
@@ -194,65 +131,10 @@ class MySemanticAnalyzer(SemanticAnalyzer):
                 print(f"    [语义] 表达式语句，结果在 {temp_var}")
             return None
 
-    def handle_if_statement(self, production: Production, symbols: List[Symbol]) -> Any:
-        """处理if语句"""
-        bool_attr = symbols[2].attributes  # B的综合属性
-        prod_str = str(production)
 
-        if "else" in prod_str:  # S → if (B) then S else S
-            then_label = self.new_label()
-            else_label = self.new_label()
-            end_label = self.new_label()
 
-            self.backpatch(bool_attr["truelist"], then_label)
-            skip_else_addr = self.emit_with_backpatch(f"goto L")
-            self.emit(f"LABEL {then_label}:")
 
-            self.emit(f"goto {end_label}")
-            self.emit(f"LABEL {else_label}:")
-            self.backpatch([skip_else_addr], else_label)
 
-            self.emit(f"LABEL {end_label}")
-            return None
-
-        else:  # S → if (B) then S
-            then_label = self.new_label()
-            self.backpatch(bool_attr["truelist"], then_label)
-            self.emit(f"LABEL {then_label}")
-            return {"nextlist": bool_attr.get("falselist", [])}
-
-    def handle_while_statement(self, production: Production, symbols: List[Symbol]) -> Any:
-        """处理while语句: S → while (B) do S"""
-        bool_attr = symbols[2].attributes  # B的综合属性
-
-        if not bool_attr:
-            print(f"    [语义错误] while语句中布尔表达式属性缺失")
-            return None
-
-        # 生成标签
-        begin_label = self.new_label()
-        body_label = self.new_label()
-        end_label = self.new_label()
-
-        # 保存标签信息，供break/continue使用
-        self.while_stack.append({
-            "cond_label": begin_label,
-            "end_label": end_label
-        })
-
-        # 生成代码
-        self.emit(f"LABEL {begin_label}:")
-        # 回填truelist到循环体开始
-        self.backpatch(bool_attr.get("truelist", []), body_label)
-        self.emit(f"LABEL {body_label}:")
-        # 循环体结束后跳回条件判断
-        self.emit(f"goto {begin_label}")
-        # falselist跳到循环结束
-        self.emit(f"LABEL {end_label}:")
-        self.backpatch(bool_attr.get("falselist", []), end_label)
-
-        print(f"    [语义] 生成while语句，标签: {begin_label}, {body_label}, {end_label}")
-        return None
 
     def handle_expression(self, production: Production, symbols: List[Symbol]) -> Any:
         """处理表达式: E → E + T | E - T | T"""
@@ -350,7 +232,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
 
         elif len(symbols) == 1:
             sym = symbols[0]
-            sym_name = str(sym.name)  # token类型：'num', 'id', 'true', 'false'
+            sym_name = str(sym.name)  # token类型：'num', 'id'
             sym_value = sym.value      # token值
 
             if sym_name == "num":  # 数字
@@ -360,12 +242,7 @@ class MySemanticAnalyzer(SemanticAnalyzer):
                     "temp": None
                 }
 
-            elif sym_name in ["true", "false"]:  # 布尔常量
-                return {
-                    "type": "bool",
-                    "value": sym_name == "true",
-                    "temp": None
-                }
+
 
             elif sym_name == "id":  # 标识符
                 var_name = str(sym_value)
@@ -388,107 +265,10 @@ class MySemanticAnalyzer(SemanticAnalyzer):
 
         return {"type": "error", "value": None}
 
-    def handle_boolean(self, production: Production, symbols: List[Symbol]) -> Any:
-        """处理布尔表达式 - 生成回填列表"""
-        prod_str = str(production)
 
-        # B -> E relop E (relop = ==, !=, <, >, <=, >=)
-        if len(symbols) == 3 and symbols[0].attributes and symbols[2].attributes:
-            if symbols[0].attributes.get("type") == "int" and symbols[2].attributes.get("type") == "int":
-                # 这是关系比较表达式 B -> E relop E
-                E1_attr = symbols[0].attributes
-                relop = str(symbols[1].value)  # 直接使用运算符符号
-                E2_attr = symbols[2].attributes
-
-                # 获取操作数（优先使用temp，如果没有则使用value）
-                left_val = E1_attr.get('temp') if E1_attr.get('temp') else E1_attr.get('value')
-                right_val = E2_attr.get('temp') if E2_attr.get('temp') else E2_attr.get('value')
-
-                # 生成条件跳转指令
-                code = f"if {left_val} {relop} {right_val} goto L"
-
-                # 生成跳转为真的指令（地址待回填）
-                truelist = self.make_list(self.emit_with_backpatch(code))
-
-                # 生成跳转为假的指令（无条件跳转，地址待回填）
-                falselist = self.make_list(self.emit_with_backpatch("goto L"))
-
-                return {
-                    "type": "bool",
-                    "truelist": truelist,
-                    "falselist": falselist
-                }
-
-        if symbols[0].name in ['true', 'false']:  # B → true | false
-            value = symbols[0].value
-
-            if value == 'true':
-                # 总是为真，只有truelist
-                return {
-                    "type": "bool",
-                    "truelist": self.make_list(self.emit_with_backpatch("goto L")),
-                    "falselist": []
-                }
-            else:  # false
-                # 总是为假，只有falselist
-                return {
-                    "type": "bool",
-                    "truelist": [],
-                    "falselist": self.make_list(self.emit_with_backpatch("goto L"))
-                }
-
-        elif len(symbols) == 2 and symbols[0].name == '!':  # B → ! B1
-            B1_attr = symbols[1].attributes
-            # 交换truelist和falselist
-            return {
-                "type": "bool",
-                "truelist": B1_attr.get("falselist", []),
-                "falselist": B1_attr.get("truelist", [])
-            }
-
-        elif len(symbols) == 3 and symbols[1].name in ['&&', '||']:  # B → B1 && B2 | B1 || B2
-            B1_attr = symbols[0].attributes
-            op = symbols[1].value
-            B2_attr = symbols[2].attributes
-
-            if op == '&&':
-                # B1为真时，需要回填到B2开始处
-                then_label = self.new_label()
-                self.backpatch(B1_attr.get("truelist", []), then_label)
-                self.emit(f"LABEL {then_label}:")
-
-                # 合并B1.falselist和B2.falselist
-                falselist = self.merge(B1_attr.get("falselist", []), B2_attr.get("falselist", []))
-
-                return {
-                    "type": "bool",
-                    "truelist": B2_attr.get("truelist", []),
-                    "falselist": falselist
-                }
-
-            elif op == '||':
-                # B1为假时，需要回填到B2开始处
-                else_label = self.new_label()
-                self.backpatch(B1_attr.get("falselist", []), else_label)
-                self.emit(f"LABEL {else_label}:")
-
-                # 合并B1.truelist和B2.truelist
-                truelist = self.merge(B1_attr.get("truelist", []), B2_attr.get("truelist", []))
-
-                return {
-                    "type": "bool",
-                    "truelist": truelist,
-                    "falselist": B2_attr.get("falselist", [])
-                }
-
-        return {"type": "bool", "truelist": [], "falselist": []}
 
     def handle_type(self, production: Production, symbols: List[Symbol]) -> str:
         """处理类型: type → int | bool"""
         type_str = str(symbols[0])
         return type_str
 
-    def handle_relop(self, production: Production, symbols: List[Symbol]) -> Any:
-        """处理关系操作符: relop → == | != | < | > | <= | >="""
-        op_str = str(symbols[0].value)
-        return {"op": op_str}

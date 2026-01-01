@@ -267,73 +267,7 @@ result := x + y * 2 ;
 
 ---
 
-### 🔹 演示2.3：控制流 - if/else语句（2分钟）
-
-```bash
-python tests/intermediate_code/test_ic_generation.py configs/grammar_imperative.json test_programs/intermediate_code/ic_test2_if_else.txt
-```
-
-**源程序内容**：
-```
-int x ;
-int max ;
-x := 5 ;
-max := 10 ;
-if ( x < max ) then x := x + 1 ;
-if ( x > 0 ) then x := x * 2 ; else x := 0 ;
-```
-
-**演示要点**：
-1. **条件跳转**：展示回填技术
-2. **标签生成**：展示L1、L2等标签
-3. **三地址码**：17条指令，包含条件跳转
-
----
-
-### 🔹 演示2.4：循环结构 - while循环（2分钟）
-
-```bash
-python tests/intermediate_code/test_ic_generation.py configs/grammar_imperative.json test_programs/intermediate_code/ic_test3_while_loop.txt
-```
-
-**源程序内容**：
-```
-int i ;
-int sum ;
-i := 0 ;
-sum := 0 ;
-while ( i < 10 ) do i := i + 1 ;
-```
-
-**演示要点**：
-1. **循环结构**：展示begin标签和goto跳转
-2. **回填技术**：truelist和falselist的回填
-3. **三地址码**：13条指令
-
----
-
-### 🔹 演示2.5：复杂表达式（2分钟）
-
-```bash
-python tests/intermediate_code/test_ic_generation.py configs/grammar_imperative.json test_programs/intermediate_code/ic_test4_complex_bool.txt
-```
-
-**源程序内容**：
-```
-bool flag ;
-int a ;
-int b ;
-flag := ( a > 5 ) && ( b < 10 ) ;
-```
-
-**演示要点**：
-1. **布尔类型**：展示bool类型支持
-2. **复杂表达式**：短路求值
-3. **三地址码**：23条指令
-
----
-
-### 🔹 演示2.6：错误处理（可选，1分钟）
+### 🔹 演示2.3：错误处理（可选，1分钟）
 
 创建一个错误的测试文件：
 ```bash
@@ -388,53 +322,23 @@ python demo_two_stages.py configs/grammar1_arithmetic.json test_programs/arithme
 
 ```bash
 # 算术运算（2分钟）
-python tests/intermediate_code/test_ic_generation.py test_programs/intermediate_code/ic_test1_arithmetic.txt
+python tests/intermediate_code/test_ic_generation.py configs/grammar_imperative.json test_programs/intermediate_code/ic_test1_arithmetic.txt
 
-# if/else语句（3分钟，重点）
-python tests/intermediate_code/test_ic_generation.py test_programs/intermediate_code/ic_test2_if_else.txt
-
-# while循环（2分钟）
-python tests/intermediate_code/test_ic_generation.py test_programs/intermediate_code/ic_test3_while.txt
+# 错误处理（1分钟）
+python tests/intermediate_code/test_ic_generation.py configs/grammar_imperative.json test_error.txt
 ```
 
 ### 总结（1分钟）
 
-> "演示完成。第一部分测试了2个不同文法的自动生成，包括4个正确程序和1个错误程序，验证了自动生成能力和正确性。第二部分展示了中间代码生成，包括控制流和回填技术。谢谢老师！"
+> "演示完成。第一部分测试了2个不同文法的自动生成，包括4个正确程序和1个错误程序，验证了自动生成能力和正确性。第二部分展示了中间代码生成。谢谢老师！"
 
 ---
 
-## 🎯 推荐演示方式：使用自动演示脚本
+## 🎯 推荐演示方式：手动运行
 
-### 方式1：使用自动演示脚本（推荐！）
+由于我们删除了旧的自动化脚本，建议直接使用以下命令进行演示：
 
-项目已包含两个自动演示脚本，可以一键运行所有测试：
-
-#### 精简版（推荐用于正式演示）
-```bash
-.\run_demo_simple.ps1
-```
-- ✅ 只显示关键输出（合法性判断、产生式序列、三地址码等）
-- ✅ 每个测试后暂停，按回车继续
-- ✅ 演示时间更可控
-- ✅ 输出清晰简洁
-
-#### 完整版（适合详细讲解）
-```bash
-.\run_demo.ps1
-```
-- ✅ 显示完整的分析过程
-- ✅ 包含详细的说明文字
-- ✅ 自动统计和总结
-- ✅ 适合深入讲解算法
-
-**优点**：
-- 🎯 不用手动输入命令，避免输入错误
-- 🎯 每个测试之间自动暂停，可以讲解
-- 🎯 显示测试进度（如 [3/8]）
-- 🎯 自动显示总结统计
-- 🎯 更加专业和流畅
-
-### 方式2：手动逐个运行（备用）
+### 方式1：手动逐个运行
 
 如果需要手动控制，可以参考下面的命令清单。
 
@@ -446,7 +350,7 @@ python tests/intermediate_code/test_ic_generation.py test_programs/intermediate_
 
 - [ ] 测试演示脚本确保能正常运行
   ```bash
-  .\run_demo_simple.ps1  # 推荐测试这个
+  python demo_two_stages.py configs/grammar1_arithmetic.json test_programs/arithmetic_1.txt
   ```
 - [ ] 准备好所有要打开的文件路径
 - [ ] 清空generated/目录（可选，让生成过程更明显）
@@ -494,7 +398,7 @@ python --version
 
 ### 第二部分介绍
 
-> "第二部分是中间代码生成。我们设计了一个命令式语言文法，支持类型检查、控制流和布尔表达式。系统采用语法制导翻译技术，在语法分析的同时生成三地址码..."
+> "第二部分是中间代码生成。我们设计了一个命令式语言文法，支持类型检查和算术表达式。系统采用语法制导翻译技术，在语法分析的同时生成三地址码..."
 
 ### 结束语（1分钟）
 
@@ -507,9 +411,6 @@ python --version
 ### Q1: 为什么选择LALR(1)而不是LL(1)？
 **A**: LALR(1)能处理更广泛的文法，特别是左递归文法。我们的实现包括完整的LR(1)项目集构建和LALR压缩优化。
 
-### Q2: 如何实现控制流的跳转？
-**A**: 我们使用回填技术（Backpatching）。在生成条件跳转指令时先留空目标地址，待后续确定标签位置后再回填。
-
 ### Q3: 临时变量如何管理？
 **A**: 系统维护一个临时变量计数器，自动生成t1、t2等临时变量名，确保不会重复。
 
@@ -520,7 +421,7 @@ python --version
 **A**: 
 1. 完整实现了编译器前端的所有阶段
 2. 真正的自动化生成（不是手写分析表）
-3. 支持高级特性（类型检查、回填技术）
+3. 支持高级特性（类型检查）
 4. 工程化设计（模块化、可扩展）
 
 ---

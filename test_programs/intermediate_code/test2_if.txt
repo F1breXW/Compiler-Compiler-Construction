@@ -1,6 +1,0 @@
-int result ;
-int a ;
-int b ;
-a := 10 ;
-b := 20 ;
-if ( a < b ) then result := a + b ;
